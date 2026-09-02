@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Chat</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #071a33;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        .login-container h1 {
+            color: #071a33;
+            margin-bottom: 5px;
+        }
+
+        .login-container p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 13px;
+            background: #071a33;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background: #102b50;
+        }
+
+        .error {
+            color: #c62828;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            height: 100vh;
+            background: white;
+            display: none;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #071a33;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            font-size: 14px;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f7fa;
+        }
+
+        .welcome {
+            text-align: center;
+            color: #777;
+            margin-top: 40px;
+        }
+
+        .message {
+            background: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+
+        .message-name {
+            font-weight: bold;
+            color: #071a33;
+            margin-bottom: 5px;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            gap: 10px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .input-area button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #071a33;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .admin-panel {
+            display: none;
+            background: #e9eef5;
+            padding: 10px;
+            text-align: center;
+            color: #071a33;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN -->
+
+    <div class="login-container" id="loginContainer">
+
+        <h1>Prime Chat</h1>
+
+        <p>Grupo general</p>
+
+        <input
+            type="text"
+            id="nameInput"
+            placeholder="Escribe tu nombre"
+        >
+
+        <input
+            type="password"
+            id="keyInput"
+            placeholder="Escribe tu clave"
+        >
+
+        <button onclick="login()">Entrar</button>
+
+        <div class="error" id="errorMessage">
+            Nombre o clave incorrectos.
+        </div>
+
+    </div>
+
+
+    <!-- CHAT -->
+
+    <div class="chat-container" id="chatContainer">
+
+        <div class="header">
+            <h1>Prime Chat</h1>
+            <p>Grupo general</p>
+        </div>
+
+        <div class="admin-panel" id="adminPanel">
+            👑 Modo Administrador
+        </div>
+
+        <div class="messages" id="messages">
+
+            <div class="welcome">
+                <h2>Bienvenido a Prime Chat</h2>
+                <p>Este es el Grupo general.</p>
+            </div>
+
+        </div>
+
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Escribe un mensaje..."
+            >
+
+            <button onclick="sendMessage()">
+                Enviar
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function login() {
+
+            const name = document
+                .getElementById("nameInput")
+                .value
+                .trim();
+
+            const key = document
+                .getElementById("keyInput")
+                .value
+                .trim();
+
+            const error = document.getElementById("errorMessage");
+
+            if (name === "") {
+                error.textContent = "Debes escribir tu nombre.";
+                error.style.display = "block";
+                return;
+            }
+
+            if (key === "0629") {
+
+                document.getElementById("loginContainer").style.display = "none";
+
+                document.getElementById("chatContainer").style.display = "flex";
+
+                return;
+            }
+
+            if (key === "1996") {
+
+                document.getElementById("loginContainer").style.display = "none";
+
+                document.getElementById("chatContainer").style.display = "flex";
+
+                document.getElementById("adminPanel").style.display = "block";
+
+                return;
+            }
+
+            error.textContent = "Nombre o clave incorrectos.";
+            error.style.display = "block";
+        }
+
+
+        function sendMessage() {
+
+            const input = document.getElementById("messageInput");
+
+            const message = input.value.trim();
+
+            if (message === "") {
+                return;
+            }
+
+            const messages = document.getElementById("messages");
+
+            const newMessage = document.createElement("div");
+
+            newMessage.className = "message";
+
+            newMessage.innerHTML = `
+                <div class="message-name">
+                    Mensaje
+                </div>
+                <div>
+                    ${message}
+                </div>
+            `;
+
+            messages.appendChild(newMessage);
+
+            input.value = "";
+
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+    </script>
+
+</body>
+</html>
