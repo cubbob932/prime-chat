@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Prime Chat</title>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+
+
     <style>
+
         * {
             box-sizing: border-box;
         }
+
 
         body {
             margin: 0;
@@ -20,6 +32,11 @@
             align-items: center;
         }
 
+
+        /* =========================
+           LOGIN
+        ========================= */
+
         .login-container {
             width: 90%;
             max-width: 400px;
@@ -30,15 +47,18 @@
             text-align: center;
         }
 
+
         .login-container h1 {
             color: #071a33;
             margin-bottom: 5px;
         }
 
+
         .login-container p {
             color: #666;
             margin-bottom: 25px;
         }
+
 
         .login-container input {
             width: 100%;
@@ -48,6 +68,7 @@
             border-radius: 8px;
             font-size: 16px;
         }
+
 
         .login-container button {
             width: 100%;
@@ -60,9 +81,11 @@
             cursor: pointer;
         }
 
+
         .login-container button:hover {
             background: #102b50;
         }
+
 
         .error {
             color: #c62828;
@@ -70,31 +93,233 @@
             display: none;
         }
 
+
+        /* =========================
+           CHAT
+        ========================= */
+
         .chat-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 1250px;
             height: 100vh;
             background: white;
             display: none;
             flex-direction: column;
         }
 
+
         .header {
             background: #071a33;
             color: white;
-            padding: 20px;
+            padding: 14px 20px;
             text-align: center;
         }
+
 
         .header h1 {
             margin: 0;
             font-size: 24px;
         }
 
+
         .header p {
             margin: 5px 0 0;
             font-size: 14px;
         }
+
+
+        .notification-status {
+            margin-top: 6px;
+            font-size: 12px;
+            opacity: 0.9;
+            cursor: pointer;
+        }
+
+
+        /* =========================
+           NAVEGACION
+        ========================= */
+
+        .chat-navigation {
+            display: flex;
+            background: #102b50;
+        }
+
+
+        .chat-navigation button {
+            flex: 1;
+            padding: 14px 8px;
+            border: none;
+            color: white;
+            background: transparent;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+
+        .chat-navigation button.active {
+            background: white;
+            color: #071a33;
+            font-weight: bold;
+        }
+
+
+        /* =========================
+           AREA PRINCIPAL
+        ========================= */
+
+        .chat-main {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+
+        .chat-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        /* =========================
+           BANDEJA DERECHA
+        ========================= */
+
+        .admin-users {
+            display: none;
+            width: 330px;
+            flex: 0 0 330px;
+            background: #eef2f7;
+            padding: 12px;
+            border-left: 1px solid #ccc;
+            overflow-y: auto;
+        }
+
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+
+        .admin-header h3 {
+            margin: 0;
+            color: #071a33;
+            font-size: 16px;
+        }
+
+
+        .new-count {
+            background: #c62828;
+            color: white;
+            padding: 4px 9px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+
+        .inbox-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            margin: 12px 0 7px;
+            text-transform: uppercase;
+        }
+
+
+        .empty-inbox {
+            color: #777;
+            font-size: 13px;
+            padding: 8px 0;
+        }
+
+
+        .user-button {
+            display: block;
+            width: 100%;
+            padding: 11px;
+            margin-bottom: 7px;
+            border: none;
+            border-radius: 9px;
+            background: white;
+            color: #071a33;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+
+        .user-button:hover {
+            background: #dbe5f2;
+        }
+
+
+        .user-button.active {
+            background: #071a33;
+            color: white;
+        }
+
+
+        .user-button.unread {
+            background: #ffe08a;
+            color: #071a33;
+            border-left: 5px solid #c62828;
+        }
+
+
+        .user-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+        .user-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+
+        .user-count {
+            min-width: 24px;
+            height: 24px;
+            padding: 0 7px;
+            border-radius: 12px;
+            background: #c62828;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .user-preview {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        .user-button.active .user-preview {
+            color: #dbe5f2;
+        }
+
+
+        /* =========================
+           MENSAJES
+        ========================= */
 
         .messages {
             flex: 1;
@@ -103,19 +328,23 @@
             background: #f5f7fa;
         }
 
+
         .welcome {
             text-align: center;
             color: #777;
             margin-top: 40px;
         }
 
+
         .message {
             background: white;
-            padding: 10px 14px;
+            padding: 11px 14px;
             border-radius: 10px;
             margin-bottom: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            position: relative;
         }
+
 
         .message-name {
             font-weight: bold;
@@ -123,12 +352,44 @@
             margin-bottom: 5px;
         }
 
+
+        .message-text {
+            color: #222;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+
+        .message-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+
+        .delete-button {
+            border: none;
+            background: #c62828;
+            color: white;
+            border-radius: 5px;
+            padding: 4px 7px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+
+        /* =========================
+           INPUT
+        ========================= */
+
         .input-area {
             display: flex;
             padding: 15px;
             border-top: 1px solid #ddd;
             gap: 10px;
+            background: white;
         }
+
 
         .input-area input {
             flex: 1;
@@ -137,6 +398,7 @@
             border-radius: 8px;
             font-size: 16px;
         }
+
 
         .input-area button {
             padding: 12px 20px;
@@ -148,26 +410,74 @@
             font-size: 16px;
         }
 
-        .admin-panel {
-            display: none;
-            background: #e9eef5;
-            padding: 10px;
-            text-align: center;
-            color: #071a33;
-            font-weight: bold;
+
+        /* =========================
+           MOVIL
+        ========================= */
+
+        @media (max-width: 800px) {
+
+            .chat-container {
+                height: 100vh;
+            }
+
+
+            .chat-main {
+                flex-direction: column;
+            }
+
+
+            .chat-content {
+                min-height: 0;
+            }
+
+
+            .admin-users {
+                width: 100%;
+                flex: 0 0 250px;
+                max-height: 250px;
+                border-left: none;
+                border-top: 1px solid #ccc;
+            }
+
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+
+            .chat-navigation button {
+                font-size: 13px;
+            }
+
         }
+
     </style>
+
 </head>
+
 
 <body>
 
-    <!-- LOGIN -->
 
-    <div class="login-container" id="loginContainer">
+    <!-- =========================
+         LOGIN
+    ========================= -->
 
-        <h1>Prime Chat</h1>
+    <div
+        class="login-container"
+        id="loginContainer"
+    >
 
-        <p>Grupo general</p>
+        <h1>
+            Prime Chat
+        </h1>
+
+
+        <p>
+            Inicia sesión
+        </p>
+
 
         <input
             type="text"
@@ -175,54 +485,195 @@
             placeholder="Escribe tu nombre"
         >
 
+
         <input
             type="password"
             id="keyInput"
             placeholder="Escribe tu clave"
         >
 
-        <button onclick="login()">Entrar</button>
 
-        <div class="error" id="errorMessage">
+        <button onclick="login()">
+            Entrar
+        </button>
+
+
+        <div
+            class="error"
+            id="errorMessage"
+        >
             Nombre o clave incorrectos.
         </div>
 
     </div>
 
 
-    <!-- CHAT -->
+    <!-- =========================
+         CHAT
+    ========================= -->
 
-    <div class="chat-container" id="chatContainer">
+    <div
+        class="chat-container"
+        id="chatContainer"
+    >
+
 
         <div class="header">
-            <h1>Prime Chat</h1>
-            <p>Grupo general</p>
-        </div>
 
-        <div class="admin-panel" id="adminPanel">
-            👑 Modo Administrador
-        </div>
+            <h1>
+                Prime Chat
+            </h1>
 
-        <div class="messages" id="messages">
 
-            <div class="welcome">
-                <h2>Bienvenido a Prime Chat</h2>
-                <p>Este es el Grupo general.</p>
+            <p id="chatTitle">
+                Grupo general
+            </p>
+
+
+            <div
+                class="notification-status"
+                id="notificationStatus"
+                title="Pulsa para activar las notificaciones"
+            >
+                🔔 Activar notificaciones
             </div>
 
         </div>
 
-        <div class="input-area">
 
-            <input
-                type="text"
-                id="messageInput"
-                placeholder="Escribe un mensaje..."
+        <!-- NAVEGACION -->
+
+        <div class="chat-navigation">
+
+            <button
+                id="generalButton"
+                class="active"
+                onclick="openGeneralChat()"
+            >
+                💬 Grupo general
+            </button>
+
+
+            <button
+                id="privateButton"
+                onclick="openPrivateChat()"
+            >
+                🔒 Administrador
+            </button>
+
+        </div>
+
+
+        <!-- AREA PRINCIPAL -->
+
+        <div class="chat-main">
+
+
+            <!-- CHAT -->
+
+            <div class="chat-content">
+
+
+                <div
+                    class="messages"
+                    id="messages"
+                >
+
+                    <div class="welcome">
+
+                        <h2>
+                            Bienvenido a Prime Chat
+                        </h2>
+
+                        <p>
+                            Este es el Grupo general.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- INPUT -->
+
+                <div class="input-area">
+
+                    <input
+                        type="text"
+                        id="messageInput"
+                        placeholder="Escribe un mensaje..."
+                    >
+
+
+                    <button
+                        onclick="sendMessage()"
+                    >
+                        Enviar
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- BANDEJA ADMIN -->
+
+            <div
+                class="admin-users"
+                id="adminUsers"
             >
 
-            <button onclick="sendMessage()">
-                Enviar
-            </button>
+                <div class="admin-header">
+
+                    <h3>
+                        📥 Bandeja
+                    </h3>
+
+
+                    <span
+                        class="new-count"
+                        id="newMessagesCount"
+                    >
+                        0 nuevos
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="inbox-section-title"
+                    id="newSectionTitle"
+                >
+                    Mensajes nuevos
+                </div>
+
+
+                <div id="newUserList">
+
+                    <div class="empty-inbox">
+                        No hay mensajes nuevos.
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="inbox-section-title"
+                    id="otherSectionTitle"
+                >
+                    Otras conversaciones
+                </div>
+
+
+                <div id="otherUserList">
+
+                    <div class="empty-inbox">
+                        No hay conversaciones.
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -231,82 +682,2178 @@
 
     <script>
 
-        function login() {
 
-            const name = document
-                .getElementById("nameInput")
-                .value
-                .trim();
+        /* =========================
+           VARIABLES
+        ========================= */
 
-            const key = document
-                .getElementById("keyInput")
-                .value
-                .trim();
+        let currentUserName = "";
 
-            const error = document.getElementById("errorMessage");
+        let currentUserId = "";
 
-            if (name === "") {
-                error.textContent = "Debes escribir tu nombre.";
-                error.style.display = "block";
-                return;
+        let currentChat = "general";
+
+        let selectedPrivateUser = "";
+
+        let selectedPrivateUserId = "";
+
+        let isAdmin = false;
+
+        let unreadPrivateUsers = new Set();
+
+        let notificationReady = false;
+
+        let audioContext = null;
+
+
+        const ADMIN_EMAIL =
+            "cubbob932@gmail.com";
+
+
+        /* =========================
+           SESION SUPABASE
+        ========================= */
+
+        async function getExistingSession() {
+
+            const {
+                data,
+                error
+            } = await supabaseClient.auth.getSession();
+
+
+            if (error) {
+
+                console.error(
+                    "Error obteniendo sesión:",
+                    error
+                );
+
+                return null;
             }
 
-            if (key === "0629") {
 
-                document.getElementById("loginContainer").style.display = "none";
+            return data.session;
 
-                document.getElementById("chatContainer").style.display = "flex";
-
-                return;
-            }
-
-            if (key === "1996") {
-
-                document.getElementById("loginContainer").style.display = "none";
-
-                document.getElementById("chatContainer").style.display = "flex";
-
-                document.getElementById("adminPanel").style.display = "block";
-
-                return;
-            }
-
-            error.textContent = "Nombre o clave incorrectos.";
-            error.style.display = "block";
         }
 
 
-        function sendMessage() {
+        /* =========================
+           NOTIFICACIONES
+        ========================= */
 
-            const input = document.getElementById("messageInput");
+        function updateNotificationStatus(
+            text
+        ) {
 
-            const message = input.value.trim();
+            const status =
+                document.getElementById(
+                    "notificationStatus"
+                );
 
-            if (message === "") {
-                return;
+
+            if (status) {
+
+                status.textContent =
+                    text;
+
             }
 
-            const messages = document.getElementById("messages");
-
-            const newMessage = document.createElement("div");
-
-            newMessage.className = "message";
-
-            newMessage.innerHTML = `
-                <div class="message-name">
-                    Mensaje
-                </div>
-                <div>
-                    ${message}
-                </div>
-            `;
-
-            messages.appendChild(newMessage);
-
-            input.value = "";
-
-            messages.scrollTop = messages.scrollHeight;
         }
+
+
+        async function prepareNotifications() {
+
+            if (
+                !("Notification" in window)
+            ) {
+
+                updateNotificationStatus(
+                    "🔕 Tu navegador no admite notificaciones"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                Notification.permission ===
+                "granted"
+            ) {
+
+                notificationReady =
+                    true;
+
+                updateNotificationStatus(
+                    "🔔 Notificaciones activadas"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                Notification.permission ===
+                "denied"
+            ) {
+
+                updateNotificationStatus(
+                    "🔕 Notificaciones bloqueadas"
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+                const permission =
+                    await Notification.requestPermission();
+
+
+                notificationReady =
+                    permission ===
+                    "granted";
+
+
+                if (
+                    notificationReady
+                ) {
+
+                    updateNotificationStatus(
+                        "🔔 Notificaciones activadas"
+                    );
+
+                } else {
+
+                    updateNotificationStatus(
+                        "🔕 Notificaciones no activadas"
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Error solicitando notificaciones:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        function showBrowserNotification(
+            title,
+            body
+        ) {
+
+            if (
+                !notificationReady
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                document.visibilityState ===
+                "visible"
+            ) {
+
+                return;
+
+            }
+
+
+            try {
+
+                const notification =
+                    new Notification(
+                        title,
+                        {
+                            body:
+                                body
+                        }
+                    );
+
+
+                notification.onclick =
+                    function() {
+
+                        window.focus();
+
+                        notification.close();
+
+                    };
+
+            } catch (error) {
+
+                console.error(
+                    "Error mostrando notificación:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        /* =========================
+           SONIDO
+        ========================= */
+
+        function playNotificationSound() {
+
+            try {
+
+                if (!audioContext) {
+
+                    audioContext =
+                        new (
+                            window.AudioContext ||
+                            window.webkitAudioContext
+                        )();
+
+                }
+
+
+                if (
+                    audioContext.state ===
+                    "suspended"
+                ) {
+
+                    audioContext.resume();
+
+                }
+
+
+                const oscillator =
+                    audioContext.createOscillator();
+
+
+                const gain =
+                    audioContext.createGain();
+
+
+                oscillator.type =
+                    "sine";
+
+
+                oscillator.frequency.value =
+                    880;
+
+
+                gain.gain.setValueAtTime(
+                    0.0001,
+                    audioContext.currentTime
+                );
+
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.15,
+                    audioContext.currentTime +
+                    0.02
+                );
+
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    audioContext.currentTime +
+                    0.25
+                );
+
+
+                oscillator.connect(
+                    gain
+                );
+
+
+                gain.connect(
+                    audioContext.destination
+                );
+
+
+                oscillator.start();
+
+
+                oscillator.stop(
+                    audioContext.currentTime +
+                    0.25
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Error reproduciendo sonido:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        /* =========================
+           LOGIN
+        ========================= */
+
+        async function login() {
+
+            const name =
+                document
+                    .getElementById(
+                        "nameInput"
+                    )
+                    .value
+                    .trim();
+
+
+            const key =
+                document
+                    .getElementById(
+                        "keyInput"
+                    )
+                    .value
+                    .trim();
+
+
+            const error =
+                document.getElementById(
+                    "errorMessage"
+                );
+
+
+            if (
+                name === ""
+            ) {
+
+                error.textContent =
+                    "Debes escribir tu nombre.";
+
+                error.style.display =
+                    "block";
+
+                return;
+
+            }
+
+
+            /* =========================
+               USUARIO NORMAL
+            ========================= */
+
+            if (
+                key === "0629"
+            ) {
+
+                let session =
+                    await getExistingSession();
+
+
+                if (
+                    !session ||
+                    session.user.is_anonymous !==
+                    true
+                ) {
+
+                    const {
+                        data:
+                            authData,
+
+                        error:
+                            authError
+                    } =
+                        await supabaseClient
+                            .auth
+                            .signInAnonymously();
+
+
+                    if (
+                        authError
+                    ) {
+
+                        console.error(
+                            "Error de autenticación:",
+                            authError
+                        );
+
+                        alert(
+                            "No se pudo iniciar la sesión."
+                        );
+
+                        return;
+
+                    }
+
+
+                    session = {
+                        user:
+                            authData.user
+                    };
+
+                }
+
+
+                currentUserId =
+                    session.user.id;
+
+
+                currentUserName =
+                    name;
+
+
+                selectedPrivateUser =
+                    name;
+
+
+                selectedPrivateUserId =
+                    currentUserId;
+
+
+                isAdmin =
+                    false;
+
+
+                await prepareNotifications();
+
+
+                document
+                    .getElementById(
+                        "loginContainer"
+                    )
+                    .style.display =
+                    "none";
+
+
+                document
+                    .getElementById(
+                        "chatContainer"
+                    )
+                    .style.display =
+                    "flex";
+
+
+                document
+                    .getElementById(
+                        "privateButton"
+                    )
+                    .style.display =
+                    "block";
+
+
+                openGeneralChat();
+
+
+                document
+                    .getElementById(
+                        "messageInput"
+                    )
+                    .focus();
+
+
+                return;
+
+            }
+
+
+            /* =========================
+               ADMINISTRADOR
+            ========================= */
+
+            if (
+                key === "1996"
+            ) {
+
+                const adminPassword =
+                    prompt(
+                        "Introduce la contraseña de Supabase del Administrador:"
+                    );
+
+
+                if (
+                    adminPassword ===
+                        null ||
+                    adminPassword ===
+                        ""
+                ) {
+
+                    alert(
+                        "Debes introducir la contraseña del Administrador."
+                    );
+
+                    return;
+
+                }
+
+
+                const {
+                    data:
+                        authData,
+
+                    error:
+                        authError
+                } =
+                    await supabaseClient
+                        .auth
+                        .signInWithPassword({
+
+                            email:
+                                ADMIN_EMAIL,
+
+                            password:
+                                adminPassword
+
+                        });
+
+
+                if (
+                    authError
+                ) {
+
+                    console.error(
+                        "Error de autenticación del Administrador:",
+                        authError
+                    );
+
+                    alert(
+                        "No se pudo iniciar como Administrador."
+                    );
+
+                    return;
+
+                }
+
+
+                currentUserId =
+                    authData.user.id;
+
+
+                currentUserName =
+                    "Administrador";
+
+
+                isAdmin =
+                    true;
+
+
+                await prepareNotifications();
+
+
+                document
+                    .getElementById(
+                        "loginContainer"
+                    )
+                    .style.display =
+                    "none";
+
+
+                document
+                    .getElementById(
+                        "chatContainer"
+                    )
+                    .style.display =
+                    "flex";
+
+
+                document
+                    .getElementById(
+                        "privateButton"
+                    )
+                    .style.display =
+                    "none";
+
+
+                document
+                    .getElementById(
+                        "adminUsers"
+                    )
+                    .style.display =
+                    "block";
+
+
+                openGeneralChat();
+
+
+                await loadPrivateUsers();
+
+
+                document
+                    .getElementById(
+                        "messageInput"
+                    )
+                    .focus();
+
+
+                return;
+
+            }
+
+
+            error.textContent =
+                "Nombre o clave incorrectos.";
+
+            error.style.display =
+                "block";
+
+        }
+
+
+        /* =========================
+           GENERAL
+        ========================= */
+
+        function openGeneralChat() {
+
+            currentChat =
+                "general";
+
+
+            document
+                .getElementById(
+                    "generalButton"
+                )
+                .classList
+                .add(
+                    "active"
+                );
+
+
+            document
+                .getElementById(
+                    "privateButton"
+                )
+                .classList
+                .remove(
+                    "active"
+                );
+
+
+            document
+                .getElementById(
+                    "chatTitle"
+                )
+                .textContent =
+                    "Grupo general";
+
+
+            loadMessages();
+
+
+            document
+                .getElementById(
+                    "messageInput"
+                )
+                .focus();
+
+        }
+
+
+        /* =========================
+           PRIVADO
+        ========================= */
+
+        function openPrivateChat() {
+
+            currentChat =
+                "private";
+
+
+            selectedPrivateUser =
+                currentUserName;
+
+
+            selectedPrivateUserId =
+                currentUserId;
+
+
+            document
+                .getElementById(
+                    "generalButton"
+                )
+                .classList
+                .remove(
+                    "active"
+                );
+
+
+            document
+                .getElementById(
+                    "privateButton"
+                )
+                .classList
+                .add(
+                    "active"
+                );
+
+
+            document
+                .getElementById(
+                    "chatTitle"
+                )
+                .textContent =
+                    "Administrador";
+
+
+            markPrivateUserAsRead(
+                currentUserId
+            );
+
+
+            loadPrivateMessages();
+
+
+            document
+                .getElementById(
+                    "messageInput"
+                )
+                .focus();
+
+        }
+
+
+        /* =========================
+           ENVIAR MENSAJE
+        ========================= */
+
+        async function sendMessage() {
+
+            const input =
+                document.getElementById(
+                    "messageInput"
+                );
+
+
+            const message =
+                input.value.trim();
+
+
+            if (
+                message === ""
+            ) {
+
+                return;
+
+            }
+
+
+            /* GENERAL */
+
+            if (
+                currentChat ===
+                "general"
+            ) {
+
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from(
+                            "messages"
+                        )
+                        .insert([
+                            {
+
+                                name:
+                                    currentUserName,
+
+                                message:
+                                    message
+
+                            }
+                        ]);
+
+
+                if (
+                    error
+                ) {
+
+                    console.error(
+                        "Error al guardar mensaje:",
+                        error
+                    );
+
+                    alert(
+                        "No se pudo enviar el mensaje."
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            /* PRIVADO */
+
+            if (
+                currentChat ===
+                "private"
+            ) {
+
+                const privateUser =
+                    isAdmin
+                        ? selectedPrivateUser
+                        : currentUserName;
+
+
+                const privateUserId =
+                    selectedPrivateUserId;
+
+
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from(
+                            "private_messages"
+                        )
+                        .insert([
+                            {
+
+                                user_name:
+                                    privateUser,
+
+                                user_id:
+                                    privateUserId,
+
+                                sender:
+                                    currentUserName,
+
+                                message:
+                                    message
+
+                            }
+                        ]);
+
+
+                if (
+                    error
+                ) {
+
+                    console.error(
+                        "Error al guardar mensaje privado:",
+                        error
+                    );
+
+                    alert(
+                        "No se pudo enviar el mensaje privado."
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            input.value =
+                "";
+
+
+            input.focus();
+
+
+            if (
+                currentChat ===
+                "general"
+            ) {
+
+                loadMessages();
+
+            } else {
+
+                loadPrivateMessages();
+
+            }
+
+        }
+
+
+        /* =========================
+           GENERAL
+        ========================= */
+
+        async function loadMessages() {
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from(
+                        "messages"
+                    )
+                    .select(
+                        "*"
+                    )
+                    .order(
+                        "created_at",
+                        {
+                            ascending:
+                                true
+                        }
+                    );
+
+
+            if (
+                error
+            ) {
+
+                console.error(
+                    "Error al cargar mensajes:",
+                    error
+                );
+
+                return;
+
+            }
+
+
+            const messagesDiv =
+                document.getElementById(
+                    "messages"
+                );
+
+
+            messagesDiv.innerHTML =
+                "";
+
+
+            if (
+                !data ||
+                data.length ===
+                0
+            ) {
+
+                messagesDiv.innerHTML = `
+                    <div class="welcome">
+                        <h2>Grupo general</h2>
+                        <p>Aún no hay mensajes.</p>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            data.forEach(
+                item => {
+
+                    const messageElement =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    messageElement.className =
+                        "message";
+
+
+                    const nameElement =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    nameElement.className =
+                        "message-name";
+
+
+                    nameElement.textContent =
+                        item.name;
+
+
+                    const textElement =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    textElement.className =
+                        "message-text";
+
+
+                    textElement.textContent =
+                        item.message;
+
+
+                    messageElement.appendChild(
+                        nameElement
+                    );
+
+
+                    messageElement.appendChild(
+                        textElement
+                    );
+
+
+                    if (
+                        isAdmin
+                    ) {
+
+                        addDeleteButton(
+                            messageElement,
+                            "messages",
+                            item.id
+                        );
+
+                    }
+
+
+                    messagesDiv.appendChild(
+                        messageElement
+                    );
+
+                }
+            );
+
+
+            messagesDiv.scrollTop =
+                messagesDiv.scrollHeight;
+
+        }
+
+
+        /* =========================
+           PRIVADO
+        ========================= */
+
+        async function loadPrivateMessages() {
+
+            const privateUserId =
+                currentUserName ===
+                    "Administrador"
+                    ? selectedPrivateUserId
+                    : currentUserId;
+
+
+            if (
+                !privateUserId
+            ) {
+
+                return;
+
+            }
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from(
+                        "private_messages"
+                    )
+                    .select(
+                        "*"
+                    )
+                    .eq(
+                        "user_id",
+                        privateUserId
+                    )
+                    .order(
+                        "created_at",
+                        {
+                            ascending:
+                                true
+                        }
+                    );
+
+
+            if (
+                error
+            ) {
+
+                console.error(
+                    "Error al cargar mensajes privados:",
+                    error
+                );
+
+                return;
+
+            }
+
+
+            const messagesDiv =
+                document.getElementById(
+                    "messages"
+                );
+
+
+            messagesDiv.innerHTML =
+                "";
+
+
+            if (
+                !data ||
+                data.length ===
+                0
+            ) {
+
+                messagesDiv.innerHTML = `
+                    <div class="welcome">
+                        <h2>Chat con Administrador</h2>
+                        <p>Aún no hay mensajes privados.</p>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            data.forEach(
+                item => {
+
+                    const messageElement =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    messageElement.className =
+                        "message";
+
+
+                    const nameElement =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    nameElement.className =
+                        "message-name";
+
+
+                    nameElement.textContent =
+                        item.sender;
+
+
+                    const textElement =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    textElement.className =
+                        "message-text";
+
+
+                    textElement.textContent =
+                        item.message;
+
+
+                    messageElement.appendChild(
+                        nameElement
+                    );
+
+
+                    messageElement.appendChild(
+                        textElement
+                    );
+
+
+                    if (
+                        isAdmin
+                    ) {
+
+                        addDeleteButton(
+                            messageElement,
+                            "private_messages",
+                            item.id
+                        );
+
+                    }
+
+
+                    messagesDiv.appendChild(
+                        messageElement
+                    );
+
+                }
+            );
+
+
+            messagesDiv.scrollTop =
+                messagesDiv.scrollHeight;
+
+        }
+
+
+        /* =========================
+           BOTON BORRAR
+        ========================= */
+
+        function addDeleteButton(
+            messageElement,
+            tableName,
+            messageId
+        ) {
+
+            const actions =
+                document.createElement(
+                    "div"
+                );
+
+
+            actions.className =
+                "message-actions";
+
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.className =
+                "delete-button";
+
+
+            button.textContent =
+                "Borrar";
+
+
+            button.onclick =
+                function() {
+
+                    deleteMessage(
+                        tableName,
+                        messageId
+                    );
+
+                };
+
+
+            actions.appendChild(
+                button
+            );
+
+
+            messageElement.appendChild(
+                actions
+            );
+
+        }
+
+
+        async function deleteMessage(
+            tableName,
+            messageId
+        ) {
+
+            if (
+                !isAdmin
+            ) {
+
+                return;
+
+            }
+
+
+            const confirmed =
+                confirm(
+                    "¿Seguro que quieres borrar este mensaje?"
+                );
+
+
+            if (
+                !confirmed
+            ) {
+
+                return;
+
+            }
+
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .from(
+                        tableName
+                    )
+                    .delete()
+                    .eq(
+                        "id",
+                        messageId
+                    );
+
+
+            if (
+                error
+            ) {
+
+                console.error(
+                    "Error al borrar mensaje:",
+                    error
+                );
+
+                alert(
+                    "No se pudo borrar el mensaje."
+                );
+
+                return;
+
+            }
+
+
+            if (
+                tableName ===
+                "messages"
+            ) {
+
+                loadMessages();
+
+            } else {
+
+                loadPrivateMessages();
+
+                loadPrivateUsers();
+
+            }
+
+        }
+
+
+        /* =========================
+           LEIDOS
+        ========================= */
+
+        function getReadTimeKey(
+            userId
+        ) {
+
+            return (
+                "prime_chat_private_read_" +
+                userId
+            );
+
+        }
+
+
+        function getReadTime(
+            userId
+        ) {
+
+            return (
+                localStorage.getItem(
+                    getReadTimeKey(
+                        userId
+                    )
+                ) || ""
+            );
+
+        }
+
+
+        function markPrivateUserAsRead(
+            userId
+        ) {
+
+            if (
+                !userId
+            ) {
+
+                return;
+
+            }
+
+
+            localStorage.setItem(
+                getReadTimeKey(
+                    userId
+                ),
+                new Date().toISOString()
+            );
+
+
+            unreadPrivateUsers.delete(
+                userId
+            );
+
+        }
+
+
+        /* =========================
+           BANDEJA
+        ========================= */
+
+        async function loadPrivateUsers() {
+
+            if (
+                !isAdmin
+            ) {
+
+                return;
+
+            }
+
+
+            const {
+                data,
+                error
+            } =
+                await supabaseClient
+                    .from(
+                        "private_messages"
+                    )
+                    .select(
+                        "user_name,user_id,sender,message,created_at"
+                    )
+                    .order(
+                        "created_at",
+                        {
+                            ascending:
+                                false
+                        }
+                    );
+
+
+            if (
+                error
+            ) {
+
+                console.error(
+                    "Error al cargar bandeja:",
+                    error
+                );
+
+                return;
+
+            }
+
+
+            const usersMap =
+                new Map();
+
+
+            data.forEach(
+                item => {
+
+                    if (
+                        !item.user_id ||
+                        item.user_name ===
+                            "Administrador"
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    if (
+                        !usersMap.has(
+                            item.user_id
+                        )
+                    ) {
+
+                        usersMap.set(
+                            item.user_id,
+                            {
+                                id:
+                                    item.user_id,
+
+                                name:
+                                    item.user_name,
+
+                                latestMessage:
+                                    item.message,
+
+                                latestMessageAt:
+                                    item.created_at,
+
+                                latestSender:
+                                    item.sender,
+
+                                unreadCount:
+                                    0
+                            }
+                        );
+
+                    }
+
+
+                    const user =
+                        usersMap.get(
+                            item.user_id
+                        );
+
+
+                    const readTime =
+                        getReadTime(
+                            item.user_id
+                        );
+
+
+                    if (
+                        item.sender !==
+                            "Administrador" &&
+                        (
+                            readTime ===
+                                "" ||
+                            new Date(
+                                item.created_at
+                            ) >
+                            new Date(
+                                readTime
+                            )
+                        )
+                    ) {
+
+                        user.unreadCount++;
+
+                    }
+
+                }
+            );
+
+
+            const users =
+                Array.from(
+                    usersMap.values()
+                );
+
+
+            users.sort(
+                (a,b) => {
+
+                    if (
+                        a.unreadCount >
+                            0 &&
+                        b.unreadCount ===
+                            0
+                    ) {
+
+                        return -1;
+
+                    }
+
+
+                    if (
+                        a.unreadCount ===
+                            0 &&
+                        b.unreadCount >
+                            0
+                    ) {
+
+                        return 1;
+
+                    }
+
+
+                    return (
+                        new Date(
+                            b.latestMessageAt
+                        ) -
+                        new Date(
+                            a.latestMessageAt
+                        )
+                    );
+
+                }
+            );
+
+
+            const newUsers =
+                users.filter(
+                    user =>
+                        user.unreadCount >
+                        0
+                );
+
+
+            const otherUsers =
+                users.filter(
+                    user =>
+                        user.unreadCount ===
+                        0
+                );
+
+
+            const newUserList =
+                document.getElementById(
+                    "newUserList"
+                );
+
+
+            const otherUserList =
+                document.getElementById(
+                    "otherUserList"
+                );
+
+
+            newUserList.innerHTML =
+                "";
+
+
+            otherUserList.innerHTML =
+                "";
+
+
+            document
+                .getElementById(
+                    "newMessagesCount"
+                )
+                .textContent =
+                    newUsers.length +
+                    (
+                        newUsers.length ===
+                        1
+                            ? " nuevo"
+                            : " nuevos"
+                    );
+
+
+            document
+                .getElementById(
+                    "newSectionTitle"
+                )
+                .style.display =
+                    newUsers.length >
+                    0
+                        ? "block"
+                        : "none";
+
+
+            document
+                .getElementById(
+                    "otherSectionTitle"
+                )
+                .style.display =
+                    otherUsers.length >
+                    0
+                        ? "block"
+                        : "none";
+
+
+            if (
+                newUsers.length ===
+                0
+            ) {
+
+                newUserList.innerHTML =
+                    `
+                        <div class="empty-inbox">
+                            No hay mensajes nuevos.
+                        </div>
+                    `;
+
+            }
+
+
+            if (
+                otherUsers.length ===
+                0
+            ) {
+
+                otherUserList.innerHTML =
+                    `
+                        <div class="empty-inbox">
+                            No hay conversaciones.
+                        </div>
+                    `;
+
+            }
+
+
+            newUsers.forEach(
+                user => {
+
+                    newUserList.appendChild(
+                        createUserButton(
+                            user
+                        )
+                    );
+
+                }
+            );
+
+
+            otherUsers.forEach(
+                user => {
+
+                    otherUserList.appendChild(
+                        createUserButton(
+                            user
+                        )
+                    );
+
+                }
+            );
+
+        }
+
+
+        function createUserButton(
+            user
+        ) {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.className =
+                "user-button";
+
+
+            button.dataset.userId =
+                user.id;
+
+
+            if (
+                user.unreadCount >
+                0
+            ) {
+
+                button.classList.add(
+                    "unread"
+                );
+
+            }
+
+
+            if (
+                selectedPrivateUserId ===
+                    user.id &&
+                currentChat ===
+                    "private"
+            ) {
+
+                button.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            const top =
+                document.createElement(
+                    "div"
+                );
+
+
+            top.className =
+                "user-top";
+
+
+            const userName =
+                document.createElement(
+                    "span"
+                );
+
+
+            userName.className =
+                "user-name";
+
+
+            userName.textContent =
+                "👤 " +
+                user.name;
+
+
+            top.appendChild(
+                userName
+            );
+
+
+            if (
+                user.unreadCount >
+                0
+            ) {
+
+                const count =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                count.className =
+                    "user-count";
+
+
+                count.textContent =
+                    user.unreadCount;
+
+
+                top.appendChild(
+                    count
+                );
+
+            }
+
+
+            const preview =
+                document.createElement(
+                    "div"
+                );
+
+
+            preview.className =
+                "user-preview";
+
+
+            preview.textContent =
+                user.latestMessage;
+
+
+            button.appendChild(
+                top
+            );
+
+
+            button.appendChild(
+                preview
+            );
+
+
+            button.onclick =
+                function() {
+
+                    selectedPrivateUser =
+                        user.name;
+
+
+                    selectedPrivateUserId =
+                        user.id;
+
+
+                    currentChat =
+                        "private";
+
+
+                    markPrivateUserAsRead(
+                        user.id
+                    );
+
+
+                    document
+                        .getElementById(
+                            "chatTitle"
+                        )
+                        .textContent =
+                            "Chat privado con " +
+                            user.name;
+
+
+                    loadPrivateMessages();
+
+
+                    document
+                        .querySelectorAll(
+                            ".user-button"
+                        )
+                        .forEach(
+                            item =>
+                                item.classList
+                                    .remove(
+                                        "active"
+                                    )
+                        );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    document
+                        .getElementById(
+                            "messageInput"
+                        )
+                        .focus();
+
+
+                    loadPrivateUsers();
+
+                };
+
+
+            return button;
+
+        }
+
+
+        /* =========================
+           TIEMPO REAL GENERAL
+        ========================= */
+
+        supabaseClient
+            .channel(
+                "prime-general"
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event:
+                        "INSERT",
+
+                    schema:
+                        "public",
+
+                    table:
+                        "messages"
+                },
+                function() {
+
+                    if (
+                        currentChat ===
+                        "general"
+                    ) {
+
+                        loadMessages();
+
+                    }
+
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event:
+                        "DELETE",
+
+                    schema:
+                        "public",
+
+                    table:
+                        "messages"
+                },
+                function() {
+
+                    if (
+                        currentChat ===
+                        "general"
+                    ) {
+
+                        loadMessages();
+
+                    }
+
+                }
+            )
+            .subscribe();
+
+
+        /* =========================
+           TIEMPO REAL PRIVADOS
+        ========================= */
+
+        supabaseClient
+            .channel(
+                "prime-private"
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event:
+                        "INSERT",
+
+                    schema:
+                        "public",
+
+                    table:
+                        "private_messages"
+                },
+                function(
+                    payload
+                ) {
+
+                    const newMessage =
+                        payload &&
+                        payload.new
+                            ? payload.new
+                            : null;
+
+
+                    if (
+                        !newMessage
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    /* ADMINISTRADOR */
+
+                    if (
+                        isAdmin &&
+                        newMessage.sender !==
+                            "Administrador"
+                    ) {
+
+                        const sameOpenChat =
+                            currentChat ===
+                                "private" &&
+                            selectedPrivateUserId ===
+                                newMessage.user_id;
+
+
+                        if (
+                            !sameOpenChat
+                        ) {
+
+                            localStorage.removeItem(
+                                getReadTimeKey(
+                                    newMessage.user_id
+                                )
+                            );
+
+
+                            playNotificationSound();
+
+
+                            showBrowserNotification(
+                                "Nuevo mensaje en Prime Chat",
+                                newMessage.sender +
+                                ": " +
+                                newMessage.message
+                            );
+
+                        }
+
+
+                        loadPrivateUsers();
+
+                    }
+
+
+                    /* USUARIO RECIBE RESPUESTA */
+
+                    if (
+                        !isAdmin &&
+                        newMessage.user_id ===
+                            currentUserId &&
+                        newMessage.sender ===
+                            "Administrador"
+                    ) {
+
+                        playNotificationSound();
+
+
+                        showBrowserNotification(
+                            "Mensaje del Administrador",
+                            newMessage.message
+                        );
+
+
+                        if (
+                            currentChat ===
+                            "private"
+                        ) {
+
+                            loadPrivateMessages();
+
+                        }
+
+                    }
+
+
+                    /* CHAT ABIERTO */
+
+                    if (
+                        currentChat ===
+                            "private" &&
+                        newMessage.user_id ===
+                            selectedPrivateUserId
+                    ) {
+
+                        loadPrivateMessages();
+
+                    }
+
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event:
+                        "DELETE",
+
+                    schema:
+                        "public",
+
+                    table:
+                        "private_messages"
+                },
+                function() {
+
+                    if (
+                        currentChat ===
+                        "private"
+                    ) {
+
+                        loadPrivateMessages();
+
+                    }
+
+
+                    if (
+                        isAdmin
+                    ) {
+
+                        loadPrivateUsers();
+
+                    }
+
+                }
+            )
+            .subscribe();
+
+
+        /* =========================
+           ACTIVAR NOTIFICACIONES
+        ========================= */
+
+        document
+            .getElementById(
+                "notificationStatus"
+            )
+            .addEventListener(
+                "click",
+                function() {
+
+                    prepareNotifications();
+
+                }
+            );
+
+
+        /* =========================
+           ENTER
+        ========================= */
+
+        document
+            .getElementById(
+                "messageInput"
+            )
+            .addEventListener(
+                "keydown",
+                function(event) {
+
+                    if (
+                        event.key ===
+                        "Enter"
+                    ) {
+
+                        event.preventDefault();
+
+                        sendMessage();
+
+                    }
+
+                }
+            );
 
     </script>
 
