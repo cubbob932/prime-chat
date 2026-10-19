@@ -1085,12 +1085,21 @@ supabaseClient
     .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
-        function() {
+        function(payload) {
+
+            const newMessage = payload.new;
+
+            playNotificationSound();
+
+            showBrowserNotification(
+                "Nuevo mensaje en el grupo general",
+                newMessage.sender + ": " + newMessage.message
+            );
+
             if (currentChat === "general") {
                 loadMessages();
             }
-        }
-    )
+        }    )
     .on(
         "postgres_changes",
         { event: "DELETE", schema: "public", table: "messages" },
