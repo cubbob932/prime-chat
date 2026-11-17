@@ -53,155 +53,314 @@ body {
 .login-container button:hover { background: #102b50; }
 .error { color: #c62828; margin-top: 15px; display: none; }
 
-/* CHAT */
+/* CHAT CONTAINER */
 .chat-container {
     --main: #071a33;
     --nav: #102b50;
     --bg: #f5f7fa;
     --banner-bg: #dbe8fb;
     width: 100%;
-    max-width: 1250px;
+    max-width: 1400px;
     height: 100vh;
     background: white;
     display: none;
     flex-direction: column;
 }
-.header { background: var(--main); color: white; padding: 14px 20px; text-align: center; }
+
+/* HEADER CON NOMBRE DE USUARIO */
+.header {
+    background: var(--main);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
 .header h1 { margin: 0; font-size: 24px; }
-.header p { margin: 5px 0 0; font-size: 14px; }
-.notification-status { margin-top: 6px; font-size: 12px; opacity: 0.9; cursor: pointer; }
+.header p { margin: 0; font-size: 14px; }
+.user-session {
+    font-size: 13px;
+    background: rgba(255,255,255,0.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.notification-status {
+    margin-top: 6px;
+    font-size: 12px;
+    opacity: 0.9;
+    cursor: pointer;
+}
 
 /* NAVEGACION */
-.chat-navigation { display: flex; background: var(--nav); }
+.chat-navigation {
+    display: flex;
+    background: var(--nav);
+    padding: 8px 0;
+}
 .chat-navigation button {
     flex: 1;
-    padding: 18px 8px;
+    padding: 14px 8px;
     border: none;
     color: white;
     background: transparent;
     cursor: pointer;
-    font-size: 17px;
+    font-size: 16px;
     opacity: 0.75;
+    transition: all 0.2s;
 }
+.chat-navigation button:hover { opacity: 0.9; }
 .chat-navigation button.active {
     background: white;
     color: var(--main);
     font-weight: bold;
     opacity: 1;
-    box-shadow: inset 0 -6px 0 var(--main);
+    box-shadow: inset 0 -4px 0 var(--main);
 }
-
-/* AREA PRINCIPAL */
-.chat-main { display: flex; flex: 1; min-height: 0; }
-.chat-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-/* BANDEJA DERECHA */
-.admin-users {
-    display: none;
-    width: 330px;
-    flex: 0 0 330px;
-    background: #eef2f7;
-    padding: 12px;
-    border-left: 1px solid #ccc;
-    overflow-y: auto;
-}
-.admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-.admin-header h3 { margin: 0; color: #071a33; font-size: 16px; }
-.new-count {
+.nav-badge {
     background: #c62828;
     color: white;
-    padding: 4px 9px;
-    border-radius: 15px;
-    font-size: 12px;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
     font-weight: bold;
 }
-.inbox-section-title {
-    font-size: 12px;
+
+/* LAYOUT PRINCIPAL - SIDEBAR IZQUIERDA + CONTENIDO */
+.chat-main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* SIDEBAR IZQUIERDA */
+.chat-sidebar {
+    width: 320px;
+    flex: 0 0 320px;
+    background: #eef2f7;
+    border-right: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-section {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.sidebar-section-title {
+    font-size: 11px;
     font-weight: bold;
     color: #666;
-    margin: 12px 0 7px;
+    margin: 12px 0 8px;
     text-transform: uppercase;
+    padding: 0 8px;
 }
-.empty-inbox { color: #777; font-size: 13px; padding: 8px 0; }
-.user-button {
-    display: block;
-    width: 100%;
-    padding: 11px;
-    margin-bottom: 7px;
-    border: none;
-    border-radius: 9px;
-    background: white;
-    color: #071a33;
-    text-align: left;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+
+.empty-sidebar {
+    color: #777;
+    font-size: 13px;
+    padding: 8px 0;
+    text-align: center;
 }
-.user-button:hover { background: #dbe5f2; }
-.user-button.active { background: #071a33; color: white; }
-.user-button.unread { background: #ffe08a; color: #071a33; border-left: 5px solid #c62828; }
-.user-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.user-name { font-weight: bold; font-size: 14px; }
-.user-count {
-    min-width: 24px;
-    height: 24px;
-    padding: 0 7px;
-    border-radius: 12px;
-    background: #c62828;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
+
+/* BOTONES DEL SIDEBAR (chats) */
+.sidebar-button {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s;
+    margin-bottom: 6px;
 }
-.user-preview {
-    margin-top: 5px;
+.sidebar-button:hover { background: #dbe8fb; }
+.sidebar-button.active {
+    background: var(--main);
+    color: white;
+}
+.sidebar-button.unread {
+    background: #fff5f5;
+    border-left: 4px solid #c62828;
+}
+.sidebar-button.unread:hover { background: #ffe6e6; }
+
+.sidebar-icon {
+    font-size: 18px;
+    width: 28px;
+    text-align: center;
+}
+
+.sidebar-name {
+    font-weight: 600;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-count {
+    background: #c62828;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+.sidebar-preview {
     font-size: 12px;
     color: #666;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 150px;
 }
-.user-button.active .user-preview { color: #dbe5f2; }
 
-/* MENSAJES */
-.messages { flex: 1; padding: 20px; overflow-y: auto; background: var(--bg); }
-.welcome { text-align: center; color: #777; margin-top: 40px; }
-.message {
-    background: white;
-    padding: 11px 14px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-    position: relative;
+/* AREA PRINCIPAL DE MENSAJES */
+.chat-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    overflow: hidden;
 }
-.message-name { font-weight: bold; color: var(--main); margin-bottom: 5px; }
-.message-text { color: #222; white-space: pre-wrap; word-break: break-word; }
-.message-time { margin-top: 5px; font-size: 11px; color: #888; text-align: right; }
-.message-actions { position: absolute; top: 8px; right: 8px; }
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.welcome {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+}
+.welcome h2 { color: #333; margin-bottom: 8px; }
+
+.message {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.4;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-name {
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 4px;
+    text-transform: capitalize;
+}
+
+.message-text {
+    color: #222;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.message-time {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #888;
+    text-align: right;
+}
+
+.message-image {
+    max-width: 250px;
+    max-height: 200px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border 0.2s;
+    margin-top: 6px;
+    display: block;
+}
+.message-image:hover { border-color: var(--main); }
+
+.message-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.message:hover .message-actions { opacity: 1; }
+
 .delete-button {
     border: none;
     background: #c62828;
     color: white;
-    border-radius: 5px;
-    padding: 4px 7px;
+    border-radius: 6px;
+    padding: 4px 8px;
     cursor: pointer;
     font-size: 11px;
 }
 
-/* INPUT */
+.image-actions {
+    margin-top: 6px;
+    display: flex;
+    gap: 8px;
+}
+.image-actions button {
+    flex: 1;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    background: var(--main);
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+}
+.image-actions button:hover { opacity: 0.9; }
+
+/* Mensajes propios */
+.message.own {
+    background: var(--main);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+.message.own .message-name { color: #ffd700; }
+.message.own .message-text { color: white; }
+.message.own .message-time { color: #ccc; }
+.message.own .message-image { border-color: rgba(255,255,255,0.5); }
+
+/* INPUT AREA */
 .input-area {
     display: flex;
     padding: 15px;
     border-top: 1px solid #ddd;
     gap: 10px;
     background: white;
+    align-items: center;
 }
 .input-area input {
     flex: 1;
@@ -219,6 +378,22 @@ body {
     cursor: pointer;
     font-size: 16px;
 }
+.input-area button:hover { background: #102b50; }
+
+.send-image-btn {
+    padding: 12px;
+    border-radius: 8px;
+    background: #eef2f7;
+    color: var(--main);
+    border: 2px dashed var(--main);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 45px;
+}
+.send-image-btn:hover { background: #dbe8fb; }
 
 /* AVISO FIJO */
 .chat-banner {
@@ -244,15 +419,28 @@ body {
     .chat-container { height: 100vh; }
     .chat-main { flex-direction: column; }
     .chat-content { min-height: 0; }
-    .admin-users {
+    .chat-sidebar {
         width: 100%;
-        flex: 0 0 250px;
-        max-height: 250px;
-        border-left: none;
-        border-top: 1px solid #ccc;
+        flex: 0 0 200px;
+        max-height: 200px;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
     }
     .header h1 { font-size: 20px; }
-    .chat-navigation button { font-size: 13px; }
+    .chat-navigation button { font-size: 13px; padding: 10px 4px; }
+    .message { max-width: 85%; }
+}
+
+/* INPUT OCULTO PARA IMAGENES */
+#imageFileInput { display: none; }
+
+/* PISTA DE PEGADO */
+.paste-hint {
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    margin-top: 4px;
+    padding: 0 15px;
 }
 </style>
 </head>
@@ -274,6 +462,7 @@ body {
 
     <div class="header">
         <h1>Prime Chat</h1>
+        <div class="user-session" id="userSession">Iniciaste como: <span id="userSessionName"></span></div>
         <p id="chatTitle">Grupo general</p>
         <div class="notification-status" id="notificationStatus" title="Pulsa para activar las notificaciones">
             🔔 Activar notificaciones
@@ -281,12 +470,35 @@ body {
     </div>
 
     <div class="chat-navigation">
-        <button id="generalButton" class="active" onclick="openGeneralChat()">👥 Grupo general (todos)</button>
+        <button id="generalButton" class="active" onclick="openGeneralChat()">
+            👥 Grupo general <span class="nav-badge" id="generalBadge">0</span>
+        </button>
         <button id="privateButton" onclick="openPrivateChat()">🔒 Privado con Administrador</button>
     </div>
 
     <div class="chat-main">
 
+        <!-- SIDEBAR IZQUIERDA -->
+        <div class="chat-sidebar" id="chatSidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">👥 Grupos</div>
+                <button class="sidebar-button active" id="sidebarGeneralBtn" onclick="openGeneralChat()">
+                    <span class="sidebar-icon">👥</span>
+                    <span class="sidebar-name">Grupo general</span>
+                    <span class="sidebar-count" id="sidebarGeneralCount">0</span>
+                </button>
+                <div class="sidebar-preview" style="text-align:center; color:#888; font-size:11px;">Todos los mensajes públicos</div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">💬 Mensajes privados</div>
+                <div id="sidebarPrivateList">
+                    <div class="empty-sidebar">No hay conversaciones privadas.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL -->
         <div class="chat-content">
             <div class="messages" id="messages">
                 <div class="welcome">
@@ -301,26 +513,11 @@ body {
 
             <div class="input-area">
                 <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
+                <button class="send-image-btn" onclick="document.getElementById('imageFileInput').click()" title="Enviar imagen">📷</button>
+                <input type="file" id="imageFileInput" accept="image/*" onchange="handleImageSelect(event)">
                 <button onclick="sendMessage()">Enviar</button>
             </div>
-        </div>
-
-        <!-- BANDEJA ADMIN -->
-        <div class="admin-users" id="adminUsers">
-            <div class="admin-header">
-                <h3>📥 Bandeja</h3>
-                <span class="new-count" id="newMessagesCount">0 nuevos</span>
-            </div>
-
-            <div class="inbox-section-title" id="newSectionTitle">Mensajes nuevos</div>
-            <div id="newUserList">
-                <div class="empty-inbox">No hay mensajes nuevos.</div>
-            </div>
-
-            <div class="inbox-section-title" id="otherSectionTitle">Otras conversaciones</div>
-            <div id="otherUserList">
-                <div class="empty-inbox">No hay conversaciones.</div>
-            </div>
+            <div class="paste-hint">💡 Puedes pegar una imagen directamente con Ctrl+V</div>
         </div>
 
     </div>
@@ -339,8 +536,12 @@ let isAdmin = false;
 let unreadPrivateUsers = new Set();
 let notificationReady = false;
 let audioContext = null;
+let generalUnreadCount = 0;
 
 const ADMIN_EMAIL = "cubbob932@gmail.com";
+
+/* SUPABASE STORAGE BUCKET PARA IMAGENES */
+const STORAGE_BUCKET = "chat-images";
 
 
 /* SESION SUPABASE */
@@ -500,6 +701,9 @@ async function login() {
         selectedPrivateUserId = currentUserId;
         isAdmin = false;
 
+        /* MOSTRAR NOMBRE DE USUARIO EN EL HEADER */
+        document.getElementById("userSessionName").textContent = name;
+
         await prepareNotifications();
 
         showChatScreen();
@@ -541,11 +745,13 @@ async function login() {
         currentUserName = "Administrador";
         isAdmin = true;
 
+        /* MOSTRAR NOMBRE DE USUARIO EN EL HEADER */
+        document.getElementById("userSessionName").textContent = "Administrador";
+
         await prepareNotifications();
 
         showChatScreen();
         document.getElementById("privateButton").style.display = "none";
-        document.getElementById("adminUsers").style.display = "block";
 
         openGeneralChat();
         await loadPrivateUsers();
@@ -598,10 +804,17 @@ function applyChatTheme() {
 function openGeneralChat() {
 
     currentChat = "general";
+    generalUnreadCount = 0;
+    updateSidebarBadges();
 
     document.getElementById("generalButton").classList.add("active");
     document.getElementById("privateButton").classList.remove("active");
     document.getElementById("chatTitle").textContent = "Grupo general";
+
+    /* HIGHLIGHT SIDEBAR GENERAL */
+    const sidebarBtns = document.querySelectorAll(".sidebar-button");
+    sidebarBtns.forEach(btn => btn.classList.remove("active"));
+    document.getElementById("sidebarGeneralBtn").classList.add("active");
 
     applyChatTheme();
 
@@ -631,6 +844,23 @@ function openPrivateChat() {
     document.getElementById("messageInput").focus();
 }
 
+/* ACTUALIZAR BADGES DEL SIDEBAR */
+
+function updateSidebarBadges() {
+
+    const badge = document.getElementById("generalBadge");
+    const sidebarCount = document.getElementById("sidebarGeneralCount");
+
+    if (badge) {
+        badge.textContent = generalUnreadCount > 0 ? generalUnreadCount : "0";
+        badge.style.display = generalUnreadCount > 0 ? "inline-block" : "inline-block";
+    }
+
+    if (sidebarCount) {
+        sidebarCount.textContent = generalUnreadCount > 0 ? generalUnreadCount : "0";
+    }
+}
+
 
 /* ENVIAR MENSAJE */
 
@@ -657,6 +887,9 @@ async function sendMessage() {
             alert("No se pudo enviar el mensaje.");
             return;
         }
+
+        generalUnreadCount++;
+        updateSidebarBadges();
     }
 
 
@@ -694,6 +927,39 @@ async function sendMessage() {
 }
 
 
+/* SUBIR IMAGEN A SUPABASE STORAGE */
+
+async function uploadImage(file) {
+
+    try {
+        const fileName = currentUserName + "_" + Date.now() + "_" + file.name.replace(/\s+/g, "_");
+
+        const { error: uploadError } = await supabaseClient.storage
+            .from(STORAGE_BUCKET)
+            .upload(fileName, file, {
+                cacheControl: "3600",
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error("Error al subir imagen:", uploadError);
+            alert("No se pudo subir la imagen.");
+            return null;
+        }
+
+        const { data: urlData } = supabaseClient.storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(fileName);
+
+        return urlData.publicUrl;
+    } catch (err) {
+        console.error("Error al subir imagen:", err);
+        alert("No se pudo subir la imagen.");
+        return null;
+    }
+}
+
+
 /* HORA DEL MENSAJE */
 
 function formatMessageTime(dateString) {
@@ -719,6 +985,141 @@ function formatMessageTime(dateString) {
 }
 
 
+/* MANEJAR SELECCION DE IMAGEN DESDE INPUT */
+
+function handleImageSelect(event) {
+
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+        alert("Selecciona un archivo de imagen válido.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.style.maxWidth = "200px";
+        img.style.maxHeight = "150px";
+        img.style.borderRadius = "8px";
+        img.style.marginTop = "8px";
+        img.style.border = "2px solid var(--main)";
+        img.title = "Haz clic para enviar";
+
+        const tempDiv = document.createElement("div");
+        tempDiv.appendChild(img);
+        document.getElementById("messages").appendChild(tempDiv);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+
+        img.onclick = function() {
+            sendImageMessage(file);
+            tempDiv.remove();
+        };
+    };
+    reader.readAsDataURL(file);
+}
+
+
+/* PEGAR IMAGEN DESDE PORTAPAPELES */
+
+document.addEventListener("paste", function(e) {
+
+    if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
+        return;
+    }
+
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+            const file = items[i].getAsFile();
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = document.createElement("img");
+                    img.src = event.target.result;
+                    img.style.maxWidth = "200px";
+                    img.style.maxHeight = "150px";
+                    img.style.borderRadius = "8px";
+                    img.style.marginTop = "8px";
+                    img.style.border = "2px solid var(--main)";
+                    img.title = "Haz clic para enviar la imagen pegada";
+
+                    const tempDiv = document.createElement("div");
+                    tempDiv.appendChild(img);
+                    document.getElementById("messages").appendChild(tempDiv);
+                    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+
+                    img.onclick = function() {
+                        sendImageMessage(file);
+                        tempDiv.remove();
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+});
+
+
+/* ENVIAR MENSAJE CON IMAGEN */
+
+async function sendImageMessage(file) {
+
+    if (!file) return;
+
+    const imageUrl = await uploadImage(file);
+    if (!imageUrl) return;
+
+    /* GENERAL */
+
+    if (currentChat === "general") {
+
+        const { error } = await supabaseClient
+            .from("messages")
+            .insert([{ name: currentUserName, message: imageUrl }]);
+
+        if (error) {
+            console.error("Error al guardar imagen:", error);
+            alert("No se pudo enviar la imagen.");
+            return;
+        }
+
+        generalUnreadCount++;
+        updateSidebarBadges();
+    }
+
+    /* PRIVADO */
+
+    if (currentChat === "private") {
+
+        const privateUser = isAdmin ? selectedPrivateUser : currentUserName;
+        const privateUserId = selectedPrivateUserId;
+
+        const { error } = await supabaseClient
+            .from("private_messages")
+            .insert([{
+                user_name: privateUser,
+                user_id: privateUserId,
+                sender: currentUserName,
+                message: imageUrl
+            }]);
+
+        if (error) {
+            console.error("Error al guardar imagen privada:", error);
+            alert("No se pudo enviar la imagen privada.");
+            return;
+        }
+    }
+
+    if (currentChat === "general") {
+        loadMessages();
+    } else {
+        loadPrivateMessages();
+    }
+}
+
+
 /* CREAR MENSAJE EN PANTALLA */
 
 function createMessageElement(senderName, item, tableName) {
@@ -726,13 +1127,71 @@ function createMessageElement(senderName, item, tableName) {
     const messageElement = document.createElement("div");
     messageElement.className = "message";
 
+    const isOwn = senderName === currentUserName;
+
+    if (isOwn) {
+        messageElement.classList.add("own");
+    }
+
     const nameElement = document.createElement("div");
     nameElement.className = "message-name";
     nameElement.textContent = senderName;
 
     const textElement = document.createElement("div");
     textElement.className = "message-text";
-    textElement.textContent = item.message;
+
+    const isImage = item.message && (
+        item.message.startsWith("http") ||
+        item.message.startsWith("data:") ||
+        item.message.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i)
+    );
+
+    if (isImage) {
+        const img = document.createElement("img");
+        img.src = item.message;
+        img.className = "message-image";
+        img.alt = "Imagen compartida";
+        img.title = "Haz clic para ver a pantalla completa";
+
+        img.onclick = function() {
+            openImageViewer(item.message);
+        };
+
+        textElement.appendChild(img);
+
+        const actions = document.createElement("div");
+        actions.className = "image-actions";
+
+        const dlBtn = document.createElement("button");
+        dlBtn.textContent = "⬇ Descargar";
+        dlBtn.onclick = function(e) {
+            e.stopPropagation();
+            downloadImage(item.message);
+        };
+
+        const cpBtn = document.createElement("button");
+        cpBtn.textContent = "📋 Copiar URL";
+        cpBtn.onclick = function(e) {
+            e.stopPropagation();
+            navigator.clipboard.writeText(item.message).then(() => {
+                cpBtn.textContent = "✅ Copiado";
+                setTimeout(() => { cpBtn.textContent = "📋 Copiar URL"; }, 1500);
+            });
+        };
+
+        actions.appendChild(dlBtn);
+        actions.appendChild(cpBtn);
+        textElement.appendChild(actions);
+
+        if (isAdmin) {
+            addDeleteButton(messageElement, tableName, item.id);
+        }
+    } else {
+        textElement.textContent = item.message;
+        if (isAdmin) {
+            addDeleteButton(messageElement, tableName, item.id);
+        }
+    }
 
     messageElement.appendChild(nameElement);
     messageElement.appendChild(textElement);
@@ -743,17 +1202,77 @@ function createMessageElement(senderName, item, tableName) {
 
     messageElement.appendChild(timeElement);
 
-    if (isAdmin) {
-        addDeleteButton(messageElement, tableName, item.id);
-    }
-
     return messageElement;
+}
+
+/* VISOR DE IMAGEN A PANTALLA COMPLETA */
+
+function openImageViewer(imageUrl) {
+
+    const viewer = document.createElement("div");
+    viewer.style.position = "fixed";
+    viewer.style.top = "0";
+    viewer.style.left = "0";
+    viewer.style.width = "100%";
+    viewer.style.height = "100%";
+    viewer.style.background = "rgba(0,0,0,0.9)";
+    viewer.style.display = "flex";
+    viewer.style.flexDirection = "column";
+    viewer.style.alignItems = "center";
+    viewer.style.justifyContent = "center";
+    viewer.style.zIndex = "1000";
+    viewer.style.cursor = "zoom-out";
+
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.style.maxWidth = "90%";
+    img.style.maxHeight = "80%";
+    img.style.borderRadius = "8px";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "✕ Cerrar";
+    closeBtn.style.marginTop = "20px";
+    closeBtn.style.padding = "10px 20px";
+    closeBtn.style.background = "#c62828";
+    closeBtn.style.color = "white";
+    closeBtn.style.border = "none";
+    closeBtn.style.borderRadius = "6px";
+    closeBtn.style.cursor = "pointer";
+
+    closeBtn.onclick = function() {
+        document.body.removeChild(viewer);
+    };
+
+    viewer.onclick = function(e) {
+        if (e.target === viewer) {
+            document.body.removeChild(viewer);
+        }
+    };
+
+    viewer.appendChild(img);
+    viewer.appendChild(closeBtn);
+    document.body.appendChild(viewer);
+}
+
+/* DESCARGAR IMAGEN */
+
+function downloadImage(imageUrl) {
+
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = imageUrl.split("/").pop().split("?")[0];
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 
 /* CARGAR GENERAL */
 
 async function loadMessages() {
+
+    generalUnreadCount = 0;
+    updateSidebarBadges();
 
     const { data, error } = await supabaseClient
         .from("messages")
@@ -907,13 +1426,9 @@ function markPrivateUserAsRead(userId) {
 }
 
 
-/* BANDEJA */
+/* CARGAR USUARIOS PRIVADOS PARA SIDEBAR */
 
 async function loadPrivateUsers() {
-
-    if (!isAdmin) {
-        return;
-    }
 
     const { data, error } = await supabaseClient
         .from("private_messages")
@@ -921,7 +1436,7 @@ async function loadPrivateUsers() {
         .order("created_at", { ascending: false });
 
     if (error) {
-        console.error("Error al cargar bandeja:", error);
+        console.error("Error al cargar usuarios privados:", error);
         return;
     }
 
@@ -970,50 +1485,25 @@ async function loadPrivateUsers() {
         return new Date(b.latestMessageAt) - new Date(a.latestMessageAt);
     });
 
-    const newUsers = users.filter(user => user.unreadCount > 0);
-    const otherUsers = users.filter(user => user.unreadCount === 0);
+    const sidebarList = document.getElementById("sidebarPrivateList");
+    sidebarList.innerHTML = "";
 
-    const newUserList = document.getElementById("newUserList");
-    const otherUserList = document.getElementById("otherUserList");
-
-    newUserList.innerHTML = "";
-    otherUserList.innerHTML = "";
-
-    document.getElementById("newMessagesCount").textContent =
-        newUsers.length + (newUsers.length === 1 ? " nuevo" : " nuevos");
-
-    document.getElementById("newSectionTitle").style.display =
-        newUsers.length > 0 ? "block" : "none";
-
-    document.getElementById("otherSectionTitle").style.display =
-        otherUsers.length > 0 ? "block" : "none";
-
-    if (newUsers.length === 0) {
-        newUserList.innerHTML = `
-            <div class="empty-inbox">No hay mensajes nuevos.</div>
+    if (users.length === 0) {
+        sidebarList.innerHTML = `
+            <div class="empty-sidebar">No hay conversaciones privadas.</div>
         `;
+        return;
     }
 
-    if (otherUsers.length === 0) {
-        otherUserList.innerHTML = `
-            <div class="empty-inbox">No hay conversaciones.</div>
-        `;
-    }
-
-    newUsers.forEach(user => {
-        newUserList.appendChild(createUserButton(user));
-    });
-
-    otherUsers.forEach(user => {
-        otherUserList.appendChild(createUserButton(user));
+    users.forEach(user => {
+        sidebarList.appendChild(createSidebarUserButton(user));
     });
 }
 
-function createUserButton(user) {
+function createSidebarUserButton(user) {
 
     const button = document.createElement("button");
-    button.className = "user-button";
-    button.dataset.userId = user.id;
+    button.className = "sidebar-button";
 
     if (user.unreadCount > 0) {
         button.classList.add("unread");
@@ -1023,27 +1513,26 @@ function createUserButton(user) {
         button.classList.add("active");
     }
 
-    const top = document.createElement("div");
-    top.className = "user-top";
+    const icon = document.createElement("span");
+    icon.className = "sidebar-icon";
+    icon.textContent = "👤";
 
-    const userName = document.createElement("span");
-    userName.className = "user-name";
-    userName.textContent = "👤 " + user.name;
+    const name = document.createElement("span");
+    name.className = "sidebar-name";
+    name.textContent = user.name;
 
-    top.appendChild(userName);
-
-    if (user.unreadCount > 0) {
-        const count = document.createElement("span");
-        count.className = "user-count";
-        count.textContent = user.unreadCount;
-        top.appendChild(count);
-    }
+    const count = document.createElement("span");
+    count.className = "sidebar-count";
+    count.textContent = user.unreadCount > 0 ? user.unreadCount : "0";
+    count.style.display = user.unreadCount > 0 ? "inline-block" : "none";
 
     const preview = document.createElement("div");
-    preview.className = "user-preview";
-    preview.textContent = user.latestMessage;
+    preview.className = "sidebar-preview";
+    preview.textContent = user.latestMessage ? user.latestMessage.substring(0, 40) + (user.latestMessage.length > 40 ? "..." : "") : "";
 
-    button.appendChild(top);
+    button.appendChild(icon);
+    button.appendChild(name);
+    button.appendChild(count);
     button.appendChild(preview);
 
     button.onclick = function() {
@@ -1058,16 +1547,17 @@ function createUserButton(user) {
             "Chat privado con " + user.name;
 
         document.getElementById("generalButton").classList.remove("active");
+        document.getElementById("privateButton").classList.add("active");
+
+        /* SIDEBAR HIGHLIGHT */
+        document.querySelectorAll(".sidebar-button").forEach(btn => {
+            btn.classList.remove("active");
+        });
+        button.classList.add("active");
 
         applyChatTheme();
 
         loadPrivateMessages();
-
-        document.querySelectorAll(".user-button").forEach(item => {
-            item.classList.remove("active");
-        });
-
-        button.classList.add("active");
 
         document.getElementById("messageInput").focus();
 
