@@ -93,41 +93,6 @@ body {
     cursor: pointer;
 }
 
-/* NAVEGACION */
-.chat-navigation {
-    display: flex;
-    background: var(--nav);
-    padding: 8px 0;
-}
-.chat-navigation button {
-    flex: 1;
-    padding: 14px 8px;
-    border: none;
-    color: white;
-    background: transparent;
-    cursor: pointer;
-    font-size: 16px;
-    opacity: 0.75;
-    transition: all 0.2s;
-}
-.chat-navigation button:hover { opacity: 0.9; }
-.chat-navigation button.active {
-    background: white;
-    color: var(--main);
-    font-weight: bold;
-    opacity: 1;
-    box-shadow: inset 0 -4px 0 var(--main);
-}
-.nav-badge {
-    background: #c62828;
-    color: white;
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    margin-left: 6px;
-    font-weight: bold;
-}
-
 /* LAYOUT PRINCIPAL - SIDEBAR IZQUIERDA + CONTENIDO */
 .chat-main {
     display: flex;
@@ -469,13 +434,6 @@ body {
         </div>
     </div>
 
-    <div class="chat-navigation">
-        <button id="generalButton" class="active" onclick="openGeneralChat()">
-            👥 Grupo general <span class="nav-badge" id="generalBadge">0</span>
-        </button>
-        <button id="privateButton" onclick="openPrivateChat()">🔒 Privado con Administrador</button>
-    </div>
-
     <div class="chat-main">
 
         <!-- SIDEBAR IZQUIERDA -->
@@ -707,7 +665,6 @@ async function login() {
         await prepareNotifications();
 
         showChatScreen();
-        document.getElementById("privateButton").style.display = "block";
 
         openGeneralChat();
         document.getElementById("messageInput").focus();
@@ -751,7 +708,6 @@ async function login() {
         await prepareNotifications();
 
         showChatScreen();
-        document.getElementById("privateButton").style.display = "none";
 
         openGeneralChat();
         await loadPrivateUsers();
@@ -806,9 +762,6 @@ function openGeneralChat() {
     currentChat = "general";
     generalUnreadCount = 0;
     updateSidebarBadges();
-
-    document.getElementById("generalButton").classList.add("active");
-    document.getElementById("privateButton").classList.remove("active");
     document.getElementById("chatTitle").textContent = "Grupo general";
 
     /* HIGHLIGHT SIDEBAR GENERAL */
@@ -831,9 +784,6 @@ function openPrivateChat() {
     currentChat = "private";
     selectedPrivateUser = currentUserName;
     selectedPrivateUserId = currentUserId;
-
-    document.getElementById("generalButton").classList.remove("active");
-    document.getElementById("privateButton").classList.add("active");
     document.getElementById("chatTitle").textContent = "Administrador";
 
     applyChatTheme();
@@ -848,13 +798,7 @@ function openPrivateChat() {
 
 function updateSidebarBadges() {
 
-    const badge = document.getElementById("generalBadge");
     const sidebarCount = document.getElementById("sidebarGeneralCount");
-
-    if (badge) {
-        badge.textContent = generalUnreadCount > 0 ? generalUnreadCount : "0";
-        badge.style.display = generalUnreadCount > 0 ? "inline-block" : "inline-block";
-    }
 
     if (sidebarCount) {
         sidebarCount.textContent = generalUnreadCount > 0 ? generalUnreadCount : "0";
@@ -1545,9 +1489,6 @@ function createSidebarUserButton(user) {
 
         document.getElementById("chatTitle").textContent =
             "Chat privado con " + user.name;
-
-        document.getElementById("generalButton").classList.remove("active");
-        document.getElementById("privateButton").classList.add("active");
 
         /* SIDEBAR HIGHLIGHT */
         document.querySelectorAll(".sidebar-button").forEach(btn => {
