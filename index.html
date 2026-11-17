@@ -115,7 +115,7 @@ body {
 .sidebar-section {
     flex: 1;
     overflow-y: auto;
-    padding: 8px;
+    padding: 4px;
 }
 
 .sidebar-section-title {
@@ -130,8 +130,15 @@ body {
 .empty-sidebar {
     color: #777;
     font-size: 13px;
-    padding: 8px 0;
+    padding: 4px 0;
     text-align: center;
+    margin: 0;
+}
+
+/* Sin espacio entre btnChatAdmin y el contenido de la lista privada */
+#sidebarPrivateList .empty-sidebar {
+    padding-top: 0;
+    margin-top: 0;
 }
 
 /* BOTONES DEL SIDEBAR (chats) */
@@ -154,9 +161,20 @@ body {
 
 #btnChatAdmin {
     margin-bottom: 0;
+    padding: 4px 6px;
 }
 
 #sidebarPrivateList {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.sidebar-section > .sidebar-button:last-child {
+    margin-bottom: 0;
+}
+
+/* Reducir espacio entre título y boton admin cuando estan juntos */
+#btnChatAdmin + #sidebarPrivateList {
     margin-top: 0;
     padding-top: 0;
 }
