@@ -103,8 +103,8 @@ body {
 
 /* SIDEBAR IZQUIERDA */
 .chat-sidebar {
-    width: 320px;
-    flex: 0 0 320px;
+    width: 220px;
+    flex: 0 0 220px;
     background: #eef2f7;
     border-right: 1px solid #ccc;
     display: flex;
@@ -450,6 +450,10 @@ body {
 
             <div class="sidebar-section">
                 <div class="sidebar-section-title">💬 Mensajes privados</div>
+                <button class="sidebar-button" id="btnChatAdmin" onclick="openChatWithAdmin(this)">
+                    <span class="sidebar-icon">👨‍💼</span>
+                    <span class="sidebar-name">Chat con Administrador</span>
+                </button>
                 <div id="sidebarPrivateList">
                     <div class="empty-sidebar">No hay conversaciones privadas.</div>
                 </div>
@@ -705,6 +709,9 @@ async function login() {
         /* MOSTRAR NOMBRE DE USUARIO EN EL HEADER */
         document.getElementById("userSessionName").textContent = "Administrador";
 
+        /* OCULTAR BOTON CHAT CON ADMIN (solo para usuarios normales) */
+        document.getElementById("btnChatAdmin").style.display = "none";
+
         await prepareNotifications();
 
         showChatScreen();
@@ -789,6 +796,31 @@ function openPrivateChat() {
     applyChatTheme();
 
     markPrivateUserAsRead(currentUserId);
+    loadPrivateMessages();
+
+    document.getElementById("messageInput").focus();
+}
+
+/* CHAT CON ADMINISTRADOR (para usuarios normales) */
+
+function openChatWithAdmin(btn) {
+
+    if (isAdmin) return;
+
+    currentChat = "private";
+    selectedPrivateUser = "Administrador";
+    selectedPrivateUserId = currentUserId;
+
+    document.getElementById("chatTitle").textContent = "Chat privado con Administrador";
+
+    document.getElementById("chatContainer").classList.add("private");
+
+    /* SIDEBAR HIGHLIGHT */
+    document.querySelectorAll(".sidebar-button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    applyChatTheme();
+
     loadPrivateMessages();
 
     document.getElementById("messageInput").focus();
