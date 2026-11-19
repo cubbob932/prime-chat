@@ -1477,13 +1477,22 @@ function renderEmojiPanel() {
     panel.textContent = "Cargando emojis...";
     panel.style.padding = "12px";
 
-    import("https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js").then(function() {
+    const esUrl = "https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/es/emojibase/data.json";
+
+    Promise.all([
+        import("https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"),
+        fetch(esUrl, { method: "HEAD" }).then(function(r) { return r.ok; }).catch(function() { return false; })
+    ]).then(function(res) {
+        const spanishOk = res[1];
         panel.textContent = "";
         panel.style.padding = "0";
+
         const picker = document.createElement("emoji-picker");
         picker.className = "light";
-        picker.setAttribute("locale", "es");
-        picker.setAttribute("data-source", "https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/es/emojibase/data.json");
+        if (spanishOk) {
+            picker.setAttribute("locale", "es");
+            picker.setAttribute("data-source", esUrl);
+        }
         picker.addEventListener("emoji-click", function(e) {
             insertEmoji(e.detail.unicode);
         });
@@ -1496,8 +1505,12 @@ function renderEmojiPanel() {
         }).catch(function() {});
     }).catch(function() {
         panel.textContent = "No se pudo cargar el panel de emojis. Revisa la conexion a internet.";
-        emojiPickerLoading = false;
+        emojiLoadingReset();
     });
+}
+
+function emojiLoadingReset() {
+    emojiPickerLoading = false;
 }
 function toggleEmojiPanel(event) {
     event.stopPropagation();
