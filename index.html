@@ -342,9 +342,27 @@ body {
 .image-actions button:hover { opacity: 0.9; }
 
 /* Mensajes del Administrador - Verde */
+/* MENSAJE BASE */
+.message {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 8px;
+    margin: 6px 4px;
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 16px;
+    color: white;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Burbuja Administrador - Verde */
 .message.admin {
     background: #0b5d3b;
-    color: white;
     align-self: flex-start;
     border-bottom-left-radius: 4px;
 }
@@ -357,7 +375,7 @@ body {
 .message.own {
     background: #ea580c;
     color: white;
-    align-self: flex-end !important;
+    align-self: flex-end;
     border-bottom-right-radius: 4px;
     margin-left: auto;
 }
@@ -377,6 +395,29 @@ body {
 .message.other .message-text { color: white; }
 .message.other .message-time { color: #ccc; }
 .message.other .message-image { border-color: rgba(255,255,255,0.5); }
+
+/* Animacion entrada */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* NOMBRE Y TIEMPO */
+.message-name {
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 2px;
+    opacity: 0.9;
+}
+.message-time {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-top: 4px;
+    text-align: right;
+}
+.message.own .message-time { text-align: right; }
+.message.admin .message-time { text-align: left; }
+.message.other .message-time { text-align: left; }
 
 /* MENSAJE CITADO (REPLY) */
 .message-reply {
@@ -1420,15 +1461,15 @@ function createMessageElement(senderName, item, tableName) {
 
     // PRIORIDAD 1: Si es mensaje propio, va a la derecha en naranja
     if (isOwn) {
-        contentWrapper.classList.add("own");
+        messageElement.classList.add("own");
     }
     // PRIORIDAD 2: Si es del Administrador pero NO es nuestro, va a la izquierda en verde
     else if (isAdmin) {
-        contentWrapper.classList.add("admin");
+        messageElement.classList.add("admin");
     }
     // PRIORIDAD 3: Cualquier otro usuario, va a la izquierda en azul
     else {
-        contentWrapper.classList.add("other");
+        messageElement.classList.add("other");
     }
 
     messageElement.style.cursor = "pointer";
@@ -1513,8 +1554,6 @@ function createMessageElement(senderName, item, tableName) {
         }
     }
 
-    messageElement.appendChild(nameElement);
-    messageElement.appendChild(textElement);
 
     const timeElement = document.createElement("div");
     timeElement.className = "message-time";
@@ -1834,7 +1873,8 @@ function createSidebarUserButton(user) {
     }
 
     const icon = document.createElement("span");
-    icon.className = "sidebar-icon";
+    icon.className = "sidebar-avatar";
+    icon.style.background = getColorForName(user.name);
     icon.textContent = "👤";
 
     const name = document.createElement("span");
@@ -2178,4 +2218,8 @@ document.addEventListener("visibilitychange", function() {
 
 </body>
 </html>
+
+
+
+
 
