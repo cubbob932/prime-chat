@@ -632,6 +632,22 @@ body {
 /* INPUT OCULTO PARA IMAGENES */
 #imageFileInput { display: none; }
 
+.input-area{position:relative}
+.sidebar-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;color:white;flex-shrink:0}
+.sidebar-info{flex:1;min-width:0;display:flex;flex-direction:column}
+.sidebar-button.active .sidebar-preview{color:#d1fae5}
+.message-menu{position:fixed;z-index:2000;background:white;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.3);padding:4px;min-width:150px;display:flex;flex-direction:column}
+.message-menu button{border:none;background:transparent;text-align:left;padding:10px 14px;font-size:14px;cursor:pointer;border-radius:6px;color:#222}
+.message-menu button:hover{background:#eef2f7}
+.message-menu button.danger{color:#c62828;font-weight:bold}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:white;padding:8px 16px;border-radius:20px;font-size:13px;z-index:3000}
+.emoji-panel{position:absolute;bottom:100%;left:15px;width:320px;max-width:calc(100vw - 30px);background:white;border:1px solid #ccc;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:50;padding:6px}
+.emoji-tabs{display:flex;gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:4px}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);max-height:200px;overflow-y:auto}
+.input-area .emoji-panel button{background:transparent;color:#222;border:none;padding:4px;font-size:22px;border-radius:6px;cursor:pointer;line-height:1.2}
+.input-area .emoji-panel button:hover{background:#eef2f7}
+.input-area .emoji-tabs button.active{background:#dbe8fb}
+
 /* PISTA DE PEGADO */
 .paste-hint {
     font-size: 11px;
@@ -684,7 +700,7 @@ body {
             <div class="sidebar-section">
                 <div class="sidebar-section-title">💬 Mensajes privados</div>
                 <button class="sidebar-button" id="btnChatAdmin" onclick="openChatWithAdmin(this)">
-                    <span class="sidebar-icon">👨‍💼</span>
+                    <span class="sidebar-avatar" id="adminSidebarAvatar"></span>
                     <span class="sidebar-name">Chat con Administrador</span>
                 </button>
                 <div id="sidebarPrivateList">
@@ -718,6 +734,8 @@ body {
 
             <div class="input-area">
                 <span id="draftIndicator" class="draft-indicator" style="display: none;"></span>
+                <button type="button" class="send-image-btn" id="emojiBtn" title="Emojis" onclick="toggleEmojiPanel(event)">&#128522;</button>
+                <div class="emoji-panel" id="emojiPanel" style="display:none;"></div>
                 <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
                 <button class="send-image-btn" onclick="document.getElementById('imageFileInput').click()" title="Enviar imagen">📷</button>
                 <input type="file" id="imageFileInput" accept="image/*" onchange="handleImageSelect(event)">
@@ -983,6 +1001,8 @@ async function login() {
 /* COLORES Y AVISO SEGUN EL CHAT */
 
 function applyChatTheme() {
+    saveDraft();
+    loadDraft();
 
     const container = document.getElementById("chatContainer");
     const banner = document.getElementById("chatBanner");
@@ -1389,6 +1409,220 @@ function cancelReply() {
     document.getElementById('replyToId').value = '';
 }
 
+/* BORRADORES */
+let draftTimeout = null;
+let currentDraftKey = null;
+
+function getDraftKey() {
+    const chat = currentChat === "general"
+        ? "general"
+        : "private_" + (isAdmin ? selectedPrivateUserId : currentUserId);
+    return "prime_chat_draft_" + currentUserId + "_" + chat;
+}
+
+function saveDraft() {
+    if (draftTimeout) { clearTimeout(draftTimeout); draftTimeout = null; }
+    if (!currentDraftKey) return;
+    try {
+        const text = document.getElementById("messageInput").value;
+        if (text.trim() === "") localStorage.removeItem(currentDraftKey);
+        else localStorage.setItem(currentDraftKey, text);
+    } catch (e) {}
+}
+
+function loadDraft() {
+    currentDraftKey = getDraftKey();
+    let text = "";
+    try { text = localStorage.getItem(currentDraftKey) || ""; } catch (e) {}
+    document.getElementById("messageInput").value = text;
+}
+
+function clearDraft() {
+    if (draftTimeout) { clearTimeout(draftTimeout); draftTimeout = null; }
+    try { if (currentDraftKey) localStorage.removeItem(currentDraftKey); } catch (e) {}
+}
+
+
+/* EMOJIS */
+function emojiRange(a, b) {
+    const r = [];
+    for (let i = a; i <= b; i++) r.push(String.fromCodePoint(i));
+    return r;
+}
+function emojiList(codes) {
+    return codes.map(function(c) { return String.fromCodePoint(c); });
+}
+
+const EMOJI_GROUPS = [
+    { tab: "\u{1F600}", items: emojiRange(0x1F600, 0x1F64F) },
+    { tab: "\u{1F44D}", items: emojiRange(0x1F446, 0x1F450).concat(emojiList([0x1F4AA, 0x1F91D])) },
+    { tab: "\u2764\uFE0F", items: emojiRange(0x1F493, 0x1F49F).concat(emojiList([0x2764, 0x1F525, 0x2705, 0x274C, 0x2B50, 0x1F389, 0x1F4AF])) },
+    { tab: "\u{1F4BC}", items: emojiList([0x1F4BC, 0x1F4C5, 0x1F4CA, 0x1F4CE, 0x1F4DE, 0x1F4E7, 0x1F4B0, 0x1F4A1, 0x23F0, 0x1F680, 0x1F3E2, 0x1F697, 0x1F4E6, 0x1F4DD, 0x1F512]) }
+];
+let emojiGroupIndex = 0;
+
+function renderEmojiPanel() {
+    const panel = document.getElementById("emojiPanel");
+    panel.innerHTML = "";
+
+    const tabs = document.createElement("div");
+    tabs.className = "emoji-tabs";
+    EMOJI_GROUPS.forEach(function(g, i) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = g.tab;
+        if (i === emojiGroupIndex) b.className = "active";
+        b.onclick = function(e) {
+            e.stopPropagation();
+            emojiGroupIndex = i;
+            renderEmojiPanel();
+        };
+        tabs.appendChild(b);
+    });
+
+    const grid = document.createElement("div");
+    grid.className = "emoji-grid";
+    EMOJI_GROUPS[emojiGroupIndex].items.forEach(function(em) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = em;
+        b.onclick = function(e) {
+            e.stopPropagation();
+            insertEmoji(em);
+        };
+        grid.appendChild(b);
+    });
+
+    panel.appendChild(tabs);
+    panel.appendChild(grid);
+}
+
+function toggleEmojiPanel(event) {
+    event.stopPropagation();
+    closeMessageMenu();
+    const panel = document.getElementById("emojiPanel");
+    if (panel.style.display === "none") {
+        renderEmojiPanel();
+        panel.style.display = "block";
+    } else {
+        panel.style.display = "none";
+    }
+}
+
+function insertEmoji(em) {
+    const input = document.getElementById("messageInput");
+    const start = input.selectionStart == null ? input.value.length : input.selectionStart;
+    const end = input.selectionEnd == null ? input.value.length : input.selectionEnd;
+    input.value = input.value.slice(0, start) + em + input.value.slice(end);
+    const pos = start + em.length;
+    input.focus();
+    input.setSelectionRange(pos, pos);
+    input.dispatchEvent(new Event("input"));
+}
+
+
+/* MENU AL HACER CLIC EN UN MENSAJE */
+let activeMessageMenu = null;
+
+function closeMessageMenu() {
+    if (activeMessageMenu) {
+        activeMessageMenu.remove();
+        activeMessageMenu = null;
+    }
+}
+
+function showToast(text) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = text;
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 1400);
+}
+
+function fallbackCopy(text) {
+    const t = document.createElement("textarea");
+    t.value = text;
+    t.style.position = "fixed";
+    t.style.opacity = "0";
+    document.body.appendChild(t);
+    t.select();
+    try { document.execCommand("copy"); showToast("Copiado"); } catch (e) {}
+    t.remove();
+}
+
+function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(function() { showToast("Copiado"); })
+            .catch(function() { fallbackCopy(text); });
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function openMessageMenu(event, senderName, item, tableName) {
+    closeMessageMenu();
+    document.getElementById("emojiPanel").style.display = "none";
+
+    const menu = document.createElement("div");
+    menu.className = "message-menu";
+
+    function addOption(label, cls, action) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = label;
+        if (cls) b.className = cls;
+        b.onclick = function(e) {
+            e.stopPropagation();
+            closeMessageMenu();
+            action();
+        };
+        menu.appendChild(b);
+    }
+
+    addOption("Responder", "", function() { selectForReply(senderName, item); });
+    addOption("Copiar", "", function() { copyText(item.message); });
+    if (isAdmin) {
+        addOption("Borrar", "danger", function() { deleteMessage(tableName, item.id); });
+    }
+
+    document.body.appendChild(menu);
+    const r = menu.getBoundingClientRect();
+    let x = event.clientX;
+    let y = event.clientY;
+    if (x + r.width > window.innerWidth - 8) x = window.innerWidth - r.width - 8;
+    if (y + r.height > window.innerHeight - 8) y = window.innerHeight - r.height - 8;
+    menu.style.left = Math.max(8, x) + "px";
+    menu.style.top = Math.max(8, y) + "px";
+    activeMessageMenu = menu;
+}
+
+document.addEventListener("click", function(e) {
+    if (activeMessageMenu && !activeMessageMenu.contains(e.target)) closeMessageMenu();
+    const panel = document.getElementById("emojiPanel");
+    if (panel && panel.style.display !== "none" && !panel.contains(e.target)) panel.style.display = "none";
+});
+
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        closeMessageMenu();
+        document.getElementById("emojiPanel").style.display = "none";
+    }
+});
+
+window.addEventListener("scroll", closeMessageMenu, true);
+
+
+/* AVATAR "A" DEL CHAT CON ADMINISTRADOR */
+(function() {
+    const a = document.getElementById("adminSidebarAvatar");
+    if (a) {
+        a.style.background = getColorForName("Administrador");
+        a.textContent = getInitials("Administrador");
+    }
+})();
+
+
 /* AVATARES Y COLORES */
 
 function getInitials(name) {
@@ -1529,14 +1763,14 @@ function createMessageElement(senderName, item, tableName) {
     contentWrapper.style.flexDirection = "column";
 
     const isOwn = senderName === currentUserName;
-    const isAdmin = senderName === "Administrador";
+    const isFromAdmin = senderName === "Administrador";
 
     // PRIORIDAD 1: Si es mensaje propio, va a la derecha en naranja
     if (isOwn) {
         messageElement.classList.add("own");
     }
     // PRIORIDAD 2: Si es del Administrador pero NO es nuestro, va a la izquierda en verde
-    else if (isAdmin) {
+    else if (isFromAdmin) {
         messageElement.classList.add("admin");
     }
     // PRIORIDAD 3: Cualquier otro usuario, va a la izquierda en azul
@@ -1546,8 +1780,11 @@ function createMessageElement(senderName, item, tableName) {
 
     messageElement.style.cursor = "pointer";
     messageElement.onclick = function(e) {
-        if (e.target.closest('.delete-btn') || e.target.closest('.image-actions')) return;
-        selectForReply(senderName, item);
+        if (e.target.closest('.image-actions') || e.target.closest('.message-image') || window.getSelection().toString()) return;
+        e.stopPropagation();
+        openMessageMenu(e, senderName, item, tableName);
+        return;
+        // el menu llama a selectForReply
     };
 
     const nameElement = document.createElement("div");
@@ -1617,12 +1854,12 @@ function createMessageElement(senderName, item, tableName) {
         textElement.appendChild(actions);
 
         if (isAdmin) {
-            addDeleteButton(messageElement, tableName, item.id);
+            // borrar: ahora esta en el menu del mensaje
         }
     } else {
         textElement.textContent = item.message;
         if (isAdmin) {
-            addDeleteButton(messageElement, tableName, item.id);
+            // borrar: ahora esta en el menu del mensaje
         }
     }
 
@@ -1957,7 +2194,7 @@ function createSidebarUserButton(user) {
     const icon = document.createElement("span");
     icon.className = "sidebar-avatar";
     icon.style.background = getColorForName(user.name);
-    icon.textContent = "👤";
+    icon.textContent = getInitials(user.name);
 
     const name = document.createElement("span");
     name.className = "sidebar-name";
@@ -1974,9 +2211,13 @@ function createSidebarUserButton(user) {
     preview.textContent = user.latestMessage ? user.latestMessage.substring(0, 40) + (user.latestMessage.length > 40 ? "..." : "") : "";
 
     button.appendChild(icon);
-    button.appendChild(name);
+    const info = document.createElement("div");
+    info.className = "sidebar-info";
+    info.appendChild(name);
+    info.appendChild(preview);
+    button.appendChild(info);
     button.appendChild(count);
-    button.appendChild(preview);
+    
 
     button.onclick = function() {
 
