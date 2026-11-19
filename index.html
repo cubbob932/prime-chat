@@ -648,6 +648,9 @@ body {
 .input-area .emoji-panel button:hover{background:#eef2f7}
 .input-area .emoji-tabs button.active{background:#dbe8fb}
 
+.emoji-panel{width:350px;padding:0;overflow:hidden}
+emoji-picker{width:100%;height:380px;display:block}
+
 /* PISTA DE PEGADO */
 .paste-hint {
     font-size: 11px;
@@ -1464,42 +1467,38 @@ const EMOJI_GROUPS = [
 ];
 let emojiGroupIndex = 0;
 
+let emojiPickerEl = null;
+let emojiPickerLoading = false;
+
 function renderEmojiPanel() {
+    if (emojiPickerEl || emojiPickerLoading) return;
+    emojiPickerLoading = true;
     const panel = document.getElementById("emojiPanel");
-    panel.innerHTML = "";
+    panel.textContent = "Cargando emojis...";
+    panel.style.padding = "12px";
 
-    const tabs = document.createElement("div");
-    tabs.className = "emoji-tabs";
-    EMOJI_GROUPS.forEach(function(g, i) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = g.tab;
-        if (i === emojiGroupIndex) b.className = "active";
-        b.onclick = function(e) {
-            e.stopPropagation();
-            emojiGroupIndex = i;
-            renderEmojiPanel();
-        };
-        tabs.appendChild(b);
+    import("https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js").then(function() {
+        panel.textContent = "";
+        panel.style.padding = "0";
+        const picker = document.createElement("emoji-picker");
+        picker.className = "light";
+        picker.setAttribute("locale", "es");
+        picker.setAttribute("data-source", "https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/es/emojibase/data.json");
+        picker.addEventListener("emoji-click", function(e) {
+            insertEmoji(e.detail.unicode);
+        });
+        panel.appendChild(picker);
+        emojiPickerEl = picker;
+        emojiPickerLoading = false;
+
+        import("https://cdn.jsdelivr.net/npm/emoji-picker-element@1/i18n/es.js").then(function(m) {
+            picker.i18n = m.default;
+        }).catch(function() {});
+    }).catch(function() {
+        panel.textContent = "No se pudo cargar el panel de emojis. Revisa la conexion a internet.";
+        emojiPickerLoading = false;
     });
-
-    const grid = document.createElement("div");
-    grid.className = "emoji-grid";
-    EMOJI_GROUPS[emojiGroupIndex].items.forEach(function(em) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = em;
-        b.onclick = function(e) {
-            e.stopPropagation();
-            insertEmoji(em);
-        };
-        grid.appendChild(b);
-    });
-
-    panel.appendChild(tabs);
-    panel.appendChild(grid);
 }
-
 function toggleEmojiPanel(event) {
     event.stopPropagation();
     closeMessageMenu();
