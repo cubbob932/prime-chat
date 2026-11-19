@@ -1154,11 +1154,16 @@ function createMessageElement(senderName, item, tableName) {
     const isOwn = senderName === currentUserName;
     const isAdmin = senderName === "Administrador";
 
-    if (isAdmin) {
-        messageElement.classList.add("admin");
-    } else if (isOwn) {
+    // PRIORIDAD 1: Si es mensaje propio (sin importar quién sea el remitente), va a la derecha en naranja
+    if (isOwn) {
         messageElement.classList.add("own");
-    } else {
+    }
+    // PRIORIDAD 2: Si es del Administrador pero NO es nuestro, va a la izquierda en verde
+    else if (isAdmin) {
+        messageElement.classList.add("admin");
+    }
+    // PRIORIDAD 3: Cualquier otro usuario, va a la izquierda en azul
+    else {
         messageElement.classList.add("other");
     }
 
