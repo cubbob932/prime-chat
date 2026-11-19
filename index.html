@@ -4,7 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prime Chat</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+/* PRESENCIA AL CERRAR PESTAÑA */
+
+window.addEventListener("beforeunload", function() {
+    stopPresenceHeartbeat();
+});
+
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        stopPresenceHeartbeat();
+    } else {
+        startPresenceHeartbeat();
+    }
+});
+</script>
 <script src="supabase.js"></script>
 
 <style>
@@ -364,6 +378,103 @@ body {
 .message.other .message-time { color: #ccc; }
 .message.other .message-image { border-color: rgba(255,255,255,0.5); }
 
+/* MENSAJE CITADO (REPLY) */
+.message-reply {
+    background: rgba(0,0,0,0.05);
+    border-left: 3px solid #94a3b8;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+.message-reply.admin { border-left-color: #0b5d3b; }
+.message-reply.own { border-left-color: #ea580c; }
+.message-reply.other { border-left-color: #3b82f6; }
+.message-reply-name {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 2px;
+}
+.message-reply.admin .message-reply-name { color: #a7f3d0; }
+.message-reply.own .message-reply-name { color: #fdba74; }
+.message-reply.other .message-reply-name { color: #93c5fd; }
+.message-reply-text {
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* BARRA DE RESPUESTA (cuando vas a responder a un mensaje) */
+.reply-bar {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+.reply-bar-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.reply-bar-name {
+    font-weight: bold;
+    color: #334155;
+}
+.reply-bar-text {
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.btn-cancel-reply {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-cancel-reply:hover { background: #dc2626; }
+
+/* ESTADO EN LÍNEA */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    border: 2px solid white;
+}
+.status-online { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.6); }
+.status-offline { background: #94a3b8; }
+
+/* AVATAR CON INICIALES */
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+}
+
 /* INPUT AREA */
 .input-area {
     display: flex;
@@ -473,7 +584,7 @@ body {
 
     <div class="header">
         <h1>Prime Chat</h1>
-        <div class="user-session" id="userSession">Iniciaste como: <span id="userSessionName"></span></div>
+        <div class="user-session" id="userSession">Iniciaste como: <span id="userSessionName"></span> <span class="status-dot status-offline" id="statusDot"></span><span id="statusText">Desconectado</span></div>
         <p id="chatTitle">Grupo general</p>
         <div class="notification-status" id="notificationStatus" title="Pulsa para activar las notificaciones">
             🔔 Activar notificaciones
@@ -519,6 +630,16 @@ body {
                 👥 GRUPO GENERAL: todos verán tu mensaje
             </div>
 
+            <!-- BARRA DE RESPUESTA (oculta por defecto) -->
+            <div id="replyBar" class="reply-bar" style="display: none;">
+                <div class="btn-cancel-reply" onclick="cancelReply()" title="Cancelar respuesta">✕</div>
+                <div class="reply-bar-content">
+                    <div class="reply-bar-name" id="replyBarName">Respondiendo a:</div>
+                    <div class="reply-bar-text" id="replyBarText"></div>
+                </div>
+                <input type="hidden" id="replyToId" value="">
+            </div>
+
             <div class="input-area">
                 <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
                 <button class="send-image-btn" onclick="document.getElementById('imageFileInput').click()" title="Enviar imagen">📷</button>
@@ -545,6 +666,12 @@ let unreadPrivateUsers = new Set();
 let notificationReady = false;
 let audioContext = null;
 let generalUnreadCount = 0;
+
+/* RESPUESTA A MENSAJE ESPECÍFICO */
+let replyingTo = null; // { id, name, message }
+
+/* ESTADO EN LÍNEA / PRESENCIA */
+let presenceInterval = null;
 
 const ADMIN_EMAIL = "cubbob932@gmail.com";
 
@@ -713,6 +840,7 @@ async function login() {
         document.getElementById("userSessionName").textContent = name;
 
         await prepareNotifications();
+        startPresenceHeartbeat();
 
         showChatScreen();
 
@@ -759,6 +887,7 @@ async function login() {
         document.getElementById("btnChatAdmin").style.display = "none";
 
         await prepareNotifications();
+        startPresenceHeartbeat();
 
         showChatScreen();
 
@@ -901,9 +1030,14 @@ async function sendMessage() {
 
     if (currentChat === "general") {
 
+        const insertData = { name: currentUserName, message: message };
+        if (replyingTo) {
+            insertData.reply_to_id = replyingTo.id;
+        }
+
         const { error } = await supabaseClient
             .from("messages")
-            .insert([{ name: currentUserName, message: message }]);
+            .insert([insertData]);
 
         if (error) {
             console.error("Error al guardar mensaje:", error);
@@ -923,14 +1057,19 @@ async function sendMessage() {
         const privateUser = isAdmin ? selectedPrivateUser : currentUserName;
         const privateUserId = selectedPrivateUserId;
 
+        const insertData = {
+            user_name: privateUser,
+            user_id: privateUserId,
+            sender: currentUserName,
+            message: message
+        };
+        if (replyingTo) {
+            insertData.reply_to_id = replyingTo.id;
+        }
+
         const { error } = await supabaseClient
             .from("private_messages")
-            .insert([{
-                user_name: privateUser,
-                user_id: privateUserId,
-                sender: currentUserName,
-                message: message
-            }]);
+            .insert([insertData]);
 
         if (error) {
             console.error("Error al guardar mensaje privado:", error);
@@ -941,6 +1080,8 @@ async function sendMessage() {
 
     input.value = "";
     input.focus();
+
+    cancelReply();
 
     // El mensaje enviado se muestra automáticamente vía canal en tiempo real o verificador de respaldo.
     // No se agrega aquí para evitar duplicados cuando Supabase lo devuelve.
@@ -1140,6 +1281,115 @@ async function sendImageMessage(file) {
 }
 
 
+/* RESPONDER A UN MENSAJE ESPECÍFICO */
+
+function selectForReply(senderName, item) {
+    replyingTo = {
+        id: item.id,
+        name: senderName,
+        message: item.message || item.text || ''
+    };
+
+    const replyBar = document.getElementById('replyBar');
+    const replyBarName = document.getElementById('replyBarName');
+    const replyBarText = document.getElementById('replyBarText');
+    const replyToId = document.getElementById('replyToId');
+
+    replyBarName.textContent = 'Respondiendo a ' + senderName + ':';
+    replyBarText.textContent = replyingTo.message;
+    replyToId.value = replyingTo.id;
+    replyBar.style.display = 'flex';
+
+    // Enfocar el input
+    document.getElementById('messageInput').focus();
+}
+
+function cancelReply() {
+    replyingTo = null;
+    document.getElementById('replyBar').style.display = 'none';
+    document.getElementById('replyToId').value = '';
+}
+
+/* AVATARES Y COLORES */
+
+function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+}
+
+function getColorForName(name) {
+    if (!name) return '#64748b';
+    const colors = [
+        '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+        '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+}
+
+/* ESTADO EN LÍNEA / PRESENCIA DE USUARIOS */
+
+async function updatePresence() {
+    if (!currentUserId || !currentUserName) return;
+
+    const { error } = await supabaseClient
+        .from("user_presence")
+        .upsert({
+            user_id: currentUserId,
+            user_name: currentUserName,
+            is_online: true,
+            last_seen: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+
+    if (error) {
+        console.error("Error al actualizar presencia:", error);
+    }
+}
+
+async function loadPresence() {
+    const { data, error } = await supabaseClient
+        .from("user_presence")
+        .select("*");
+
+    if (error) {
+        console.error("Error al cargar presencia:", error);
+        return;
+    }
+
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    if (data && statusDot && statusText) {
+        const me = data.find(u => u.user_id === currentUserId);
+        if (me) {
+            statusDot.className = "status-dot status-online";
+            statusText.textContent = "En línea";
+        }
+    }
+
+    return data;
+}
+
+function startPresenceHeartbeat() {
+    if (presenceInterval) clearInterval(presenceInterval);
+    updatePresence();
+    presenceInterval = setInterval(updatePresence, 30000);
+}
+
+function stopPresenceHeartbeat() {
+    if (presenceInterval) {
+        clearInterval(presenceInterval);
+        presenceInterval = null;
+    }
+}
+
 /* CREAR MENSAJE EN PANTALLA */
 
 function createMessageElement(senderName, item, tableName) {
@@ -1151,28 +1401,64 @@ function createMessageElement(senderName, item, tableName) {
         messageElement.setAttribute("data-id", item.id);
     }
 
+    // AVATAR CON INICIALES
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.style.background = getColorForName(senderName);
+    avatar.textContent = getInitials(senderName);
+    messageElement.appendChild(avatar);
+
+    // CONTENIDO DEL MENSAJE (texto a la derecha del avatar)
+    const contentWrapper = document.createElement("div");
+    contentWrapper.style.flex = "1";
+    contentWrapper.style.minWidth = "0";
+    contentWrapper.style.display = "flex";
+    contentWrapper.style.flexDirection = "column";
+
     const isOwn = senderName === currentUserName;
     const isAdmin = senderName === "Administrador";
 
-    // PRIORIDAD 1: Si es mensaje propio (sin importar quién sea el remitente), va a la derecha en naranja
+    // PRIORIDAD 1: Si es mensaje propio, va a la derecha en naranja
     if (isOwn) {
-        messageElement.classList.add("own");
+        contentWrapper.classList.add("own");
     }
     // PRIORIDAD 2: Si es del Administrador pero NO es nuestro, va a la izquierda en verde
     else if (isAdmin) {
-        messageElement.classList.add("admin");
+        contentWrapper.classList.add("admin");
     }
     // PRIORIDAD 3: Cualquier otro usuario, va a la izquierda en azul
     else {
-        messageElement.classList.add("other");
+        contentWrapper.classList.add("other");
     }
+
+    messageElement.style.cursor = "pointer";
+    messageElement.onclick = function(e) {
+        if (e.target.closest('.delete-btn') || e.target.closest('.image-actions')) return;
+        selectForReply(senderName, item);
+    };
 
     const nameElement = document.createElement("div");
     nameElement.className = "message-name";
     nameElement.textContent = senderName;
+    contentWrapper.appendChild(nameElement);
+
+    // INDICADOR DE RESPUESTA (si este mensaje es una respuesta)
+    if (item && item.reply_to_id) {
+        const replyHint = document.createElement("div");
+        replyHint.className = "message-reply";
+        replyHint.style.fontSize = "11px";
+        replyHint.style.marginTop = "4px";
+        replyHint.style.borderLeftColor = "transparent";
+        replyHint.style.background = "rgba(0,0,0,0.03)";
+        replyHint.innerHTML = '<strong style="color:#64748b;">↩ Respondiendo a un mensaje</strong>';
+        contentWrapper.appendChild(replyHint);
+    }
 
     const textElement = document.createElement("div");
     textElement.className = "message-text";
+    contentWrapper.appendChild(textElement);
+
+    messageElement.appendChild(contentWrapper);
 
     const isImage = item.message && (
         item.message.startsWith("http") ||
@@ -1874,7 +2160,22 @@ async function checkForNewMessages() {
 
 // Ejecutar verificación cada 10 segundos
 setInterval(checkForNewMessages, 10000);
+
+/* PRESENCIA AL CERRAR PESTAÑA */
+
+window.addEventListener("beforeunload", function() {
+    stopPresenceHeartbeat();
+});
+
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        stopPresenceHeartbeat();
+    } else {
+        startPresenceHeartbeat();
+    }
+});
 </script>
 
 </body>
 </html>
+
