@@ -516,6 +516,41 @@ body {
     flex-shrink: 0;
 }
 
+
+/* SEPARADOR DE FECHAS */
+.date-separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    font-size: 11px;
+    color: #64748b;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 100%;
+}
+.date-separator::before,
+.date-separator::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #cbd5e1;
+}
+.date-separator:not(:empty)::before { margin-right: 10px; }
+.date-separator:not(:empty)::after { margin-left: 10px; }
+
+/* BORRADOR VISIBLE */
+.draft-indicator {
+    font-size: 11px;
+    color: #94a3b8;
+    font-style: italic;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
 /* INPUT AREA */
 .input-area {
     display: flex;
@@ -682,6 +717,7 @@ body {
             </div>
 
             <div class="input-area">
+                <span id="draftIndicator" class="draft-indicator" style="display: none;"></span>
                 <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
                 <button class="send-image-btn" onclick="document.getElementById('imageFileInput').click()" title="Enviar imagen">📷</button>
                 <input type="file" id="imageFileInput" accept="image/*" onchange="handleImageSelect(event)">
@@ -995,6 +1031,7 @@ function openGeneralChat() {
     applyChatTheme();
 
     loadMessages();
+    loadDraft();
 
     document.getElementById("messageInput").focus();
 }
@@ -1123,6 +1160,7 @@ async function sendMessage() {
     input.focus();
 
     cancelReply();
+    clearDraft();
 
     // El mensaje enviado se muestra automáticamente vía canal en tiempo real o verificador de respaldo.
     // No se agrega aquí para evitar duplicados cuando Supabase lo devuelve.
@@ -1424,6 +1462,40 @@ function startPresenceHeartbeat() {
     presenceInterval = setInterval(updatePresence, 30000);
 }
 
+
+/* SEPARADOR DE FECHAS */
+let lastDateGeneral = "";
+let lastDatePrivate = "";
+
+function getDateSeparatorText(dateString) {
+    if (!dateString) return "";
+    const msgDate = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const msgKey = msgDate.getFullYear() + "-" + msgDate.getMonth() + "-" + msgDate.getDate();
+    const todayKey = today.getFullYear() + "-" + today.getMonth() + "-" + today.getDate();
+    const yesterdayKey = yesterday.getFullYear() + "-" + yesterday.getMonth() + "-" + yesterday.getDate();
+    if (msgKey === todayKey) return "Hoy";
+    if (msgKey === yesterdayKey) return "Ayer";
+    return msgDate.toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+}
+
+function createDateSeparatorElement(dateString) {
+    const separator = document.createElement("div");
+    separator.className = "date-separator";
+    separator.textContent = getDateSeparatorText(dateString);
+    return separator;
+}
+
+function shouldShowDateSeparator(currentDate, lastDate) {
+    if (!currentDate || !lastDate) return true;
+    const c = new Date(currentDate);
+    const l = new Date(lastDate);
+    return c.getFullYear() !== l.getFullYear() ||
+           c.getMonth() !== l.getMonth() ||
+           c.getDate() !== l.getDate();
+}
 function stopPresenceHeartbeat() {
     if (presenceInterval) {
         clearInterval(presenceInterval);
@@ -1656,7 +1728,12 @@ async function loadMessages() {
         return;
     }
 
+    lastDateGeneral = "";
     data.forEach(item => {
+        if (shouldShowDateSeparator(item.created_at, lastDateGeneral)) {
+            messagesDiv.appendChild(createDateSeparatorElement(item.created_at));
+            lastDateGeneral = item.created_at;
+        }
         messagesDiv.appendChild(
             createMessageElement(item.name, item, "messages")
         );
@@ -1703,7 +1780,12 @@ async function loadPrivateMessages() {
         return;
     }
 
+    lastDatePrivate = "";
     data.forEach(item => {
+        if (shouldShowDateSeparator(item.created_at, lastDatePrivate)) {
+            messagesDiv.appendChild(createDateSeparatorElement(item.created_at));
+            lastDatePrivate = item.created_at;
+        }
         messagesDiv.appendChild(
             createMessageElement(item.sender, item, "private_messages")
         );
@@ -2104,15 +2186,19 @@ document
 
 /* ENTER */
 
-document
-    .getElementById("messageInput")
-    .addEventListener("keydown", function(event) {
+const messageInput = document.getElementById("messageInput");
 
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendMessage();
-        }
-    });
+messageInput.addEventListener("input", function() {
+    if (draftTimeout) clearTimeout(draftTimeout);
+    draftTimeout = setTimeout(saveDraft, 500);
+});
+
+messageInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+    }
+});
 
 
 
@@ -2218,6 +2304,9 @@ document.addEventListener("visibilitychange", function() {
 
 </body>
 </html>
+
+
+
 
 
 
