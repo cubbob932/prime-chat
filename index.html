@@ -1737,12 +1737,18 @@ function stopPresenceHeartbeat() {
     }
 }
 
+const messageCache = {};
+
 /* CREAR MENSAJE EN PANTALLA */
 
 function createMessageElement(senderName, item, tableName) {
 
     const messageElement = document.createElement("div");
     messageElement.className = "message";
+
+    if (item && item.id) {
+        messageCache[tableName + ":" + item.id] = { name: senderName, message: item.message };
+    }
 
     if (item && item.id) {
         messageElement.setAttribute("data-id", item.id);
@@ -1794,13 +1800,40 @@ function createMessageElement(senderName, item, tableName) {
 
     // INDICADOR DE RESPUESTA (si este mensaje es una respuesta)
     if (item && item.reply_to_id) {
+        const original = messageCache[tableName + ":" + item.reply_to_id];
         const replyHint = document.createElement("div");
         replyHint.className = "message-reply";
-        replyHint.style.fontSize = "11px";
-        replyHint.style.marginTop = "4px";
-        replyHint.style.borderLeftColor = "transparent";
-        replyHint.style.background = "rgba(0,0,0,0.03)";
-        replyHint.innerHTML = '<strong style="color:#64748b;">↩ Respondiendo a un mensaje</strong>';
+        replyHint.style.background = "rgba(0,0,0,0.25)";
+        replyHint.style.borderLeft = "3px solid rgba(255,255,255,0.7)";
+        replyHint.style.cursor = "pointer";
+
+        const rName = document.createElement("span");
+        rName.className = "message-reply-name";
+        rName.style.color = "#ffffff";
+
+        const rText = document.createElement("span");
+        rText.className = "message-reply-text";
+        rText.style.color = "rgba(255,255,255,0.85)";
+        rText.style.display = "block";
+
+        if (original) {
+            rName.textContent = original.name;
+            const esImagen = /^data:image|\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(original.message || "");
+            rText.textContent = esImagen ? "Imagen" : original.message;
+        } else {
+            rName.textContent = "Mensaje";
+            rText.textContent = "Mensaje original no disponible";
+        }
+
+        replyHint.appendChild(rName);
+        replyHint.appendChild(rText);
+
+        replyHint.onclick = function(e) {
+            e.stopPropagation();
+            const target = document.querySelector('[data-id="' + item.reply_to_id + '"]');
+            if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+        };
+
         contentWrapper.appendChild(replyHint);
     }
 
