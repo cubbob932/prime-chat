@@ -327,17 +327,41 @@ body {
 }
 .image-actions button:hover { opacity: 0.9; }
 
-/* Mensajes propios */
+/* Mensajes del Administrador - Verde */
+.message.admin {
+    background: #0b5d3b;
+    color: white;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+.message.admin .message-name { color: #a7f3d0; }
+.message.admin .message-text { color: white; }
+.message.admin .message-time { color: #ccc; }
+.message.admin .message-image { border-color: rgba(255,255,255,0.5); }
+
+/* Mensajes propios (usuario actual) - Naranja */
 .message.own {
-    background: var(--main);
+    background: #ea580c;
     color: white;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
 }
-.message.own .message-name { color: #ffd700; }
+.message.own .message-name { color: #fdba74; }
 .message.own .message-text { color: white; }
 .message.own .message-time { color: #ccc; }
 .message.own .message-image { border-color: rgba(255,255,255,0.5); }
+
+/* Mensajes de otros usuarios - Azul */
+.message.other {
+    background: #3b82f6;
+    color: white;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+.message.other .message-name { color: #93c5fd; }
+.message.other .message-text { color: white; }
+.message.other .message-time { color: #ccc; }
+.message.other .message-image { border-color: rgba(255,255,255,0.5); }
 
 /* INPUT AREA */
 .input-area {
@@ -917,11 +941,24 @@ async function sendMessage() {
     input.value = "";
     input.focus();
 
-    if (currentChat === "general") {
-        loadMessages();
-    } else {
-        loadPrivateMessages();
+    // Añadir mensaje enviado directamente sin recargar todo (evita duplicados con el canal en tiempo real)
+    const messagesDiv = document.getElementById("messages");
+    const welcome = messagesDiv.querySelector(".welcome");
+    if (welcome) {
+        welcome.remove();
     }
+
+    if (currentChat === "general") {
+        messagesDiv.appendChild(
+            createMessageElement(currentUserName, { name: currentUserName, message: message, created_at: new Date().toISOString() }, "messages")
+        );
+    } else {
+        const privateUserId = selectedPrivateUserId;
+        messagesDiv.appendChild(
+            createMessageElement(currentUserName, { sender: currentUserName, user_id: privateUserId, message: message, created_at: new Date().toISOString() }, "private_messages")
+        );
+    }
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
 
@@ -1126,9 +1163,14 @@ function createMessageElement(senderName, item, tableName) {
     messageElement.className = "message";
 
     const isOwn = senderName === currentUserName;
+    const isAdmin = senderName === "Administrador";
 
-    if (isOwn) {
+    if (isAdmin) {
+        messageElement.classList.add("admin");
+    } else if (isOwn) {
         messageElement.classList.add("own");
+    } else {
+        messageElement.classList.add("other");
     }
 
     const nameElement = document.createElement("div");
@@ -1588,8 +1630,17 @@ supabaseClient
                 updateSidebarBadges();
             }
 
-            if (currentChat === "general") {
-                loadMessages();
+            if (currentChat === "general" && newMessage.name !== currentUserName) {
+                // Agregar mensaje directamente sin recargar todo (evitar mensajes propios ya añadidos por sendMessage)
+                const messagesDiv = document.getElementById("messages");
+                const welcome = messagesDiv.querySelector(".welcome");
+                if (welcome) {
+                    welcome.remove();
+                }
+                messagesDiv.appendChild(
+                    createMessageElement(newMessage.name, newMessage, "messages")
+                );
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
             }
         }    )
     .on(
@@ -1660,18 +1711,38 @@ supabaseClient
                 );
 
                 if (currentChat === "private") {
-                    loadPrivateMessages();
+                    // Agregar mensaje directamente sin recargar todo
+                    const messagesDiv = document.getElementById("messages");
+                    const welcome = messagesDiv.querySelector(".welcome");
+                    if (welcome) {
+                        welcome.remove();
+                    }
+                    messagesDiv.appendChild(
+                        createMessageElement(newMessage.sender, newMessage, "private_messages")
+                    );
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 }
             }
 
 
-            /* CHAT ABIERTO */
+            /* CHAT ABIERTO (otros casos no cubiertos arriba) */
 
             if (
                 currentChat === "private" &&
-                newMessage.user_id === selectedPrivateUserId
+                newMessage.user_id === selectedPrivateUserId &&
+                newMessage.sender !== currentUserName && // evitar duplicado con mensaje propio enviado
+                !( !isAdmin && newMessage.sender === "Administrador" )
             ) {
-                loadPrivateMessages();
+                // Agregar mensaje directamente sin recargar todo
+                const messagesDiv = document.getElementById("messages");
+                const welcome = messagesDiv.querySelector(".welcome");
+                if (welcome) {
+                    welcome.remove();
+                }
+                messagesDiv.appendChild(
+                    createMessageElement(newMessage.sender, newMessage, "private_messages")
+                );
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
             }
         }
     )
