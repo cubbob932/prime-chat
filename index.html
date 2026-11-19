@@ -339,12 +339,13 @@ body {
 .message.admin .message-time { color: #ccc; }
 .message.admin .message-image { border-color: rgba(255,255,255,0.5); }
 
-/* Mensajes propios (usuario actual) - Naranja */
+/* Mensajes propios (usuario actual) - Naranja, siempre a la derecha */
 .message.own {
     background: #ea580c;
     color: white;
-    align-self: flex-end;
+    align-self: flex-end !important;
     border-bottom-right-radius: 4px;
+    margin-left: auto;
 }
 .message.own .message-name { color: #fdba74; }
 .message.own .message-text { color: white; }
@@ -941,24 +942,8 @@ async function sendMessage() {
     input.value = "";
     input.focus();
 
-    // Añadir mensaje enviado directamente sin recargar todo (evita duplicados con el canal en tiempo real)
-    const messagesDiv = document.getElementById("messages");
-    const welcome = messagesDiv.querySelector(".welcome");
-    if (welcome) {
-        welcome.remove();
-    }
-
-    if (currentChat === "general") {
-        messagesDiv.appendChild(
-            createMessageElement(currentUserName, { name: currentUserName, message: message, created_at: new Date().toISOString() }, "messages")
-        );
-    } else {
-        const privateUserId = selectedPrivateUserId;
-        messagesDiv.appendChild(
-            createMessageElement(currentUserName, { sender: currentUserName, user_id: privateUserId, message: message, created_at: new Date().toISOString() }, "private_messages")
-        );
-    }
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    // El mensaje enviado se muestra automáticamente vía canal en tiempo real o verificador de respaldo.
+    // No se agrega aquí para evitar duplicados cuando Supabase lo devuelve.
 }
 
 
@@ -1161,6 +1146,10 @@ function createMessageElement(senderName, item, tableName) {
 
     const messageElement = document.createElement("div");
     messageElement.className = "message";
+
+    if (item && item.id) {
+        messageElement.setAttribute("data-id", item.id);
+    }
 
     const isOwn = senderName === currentUserName;
     const isAdmin = senderName === "Administrador";
@@ -1630,17 +1619,21 @@ supabaseClient
                 updateSidebarBadges();
             }
 
-            if (currentChat === "general" && newMessage.name !== currentUserName) {
-                // Agregar mensaje directamente sin recargar todo (evitar mensajes propios ya añadidos por sendMessage)
+            if (currentChat === "general") {
+                // Agregar mensaje directamente sin recargar todo (incluye mensajes propios)
                 const messagesDiv = document.getElementById("messages");
                 const welcome = messagesDiv.querySelector(".welcome");
                 if (welcome) {
                     welcome.remove();
                 }
-                messagesDiv.appendChild(
-                    createMessageElement(newMessage.name, newMessage, "messages")
-                );
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                // Evitar duplicado: si ya existe un mensaje con este data-id, no agregarlo otra vez
+                const existing = messagesDiv.querySelector(`[data-id="${newMessage.id}"]`);
+                if (!existing) {
+                    messagesDiv.appendChild(
+                        createMessageElement(newMessage.name, newMessage, "messages")
+                    );
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }
             }
         }    )
     .on(
@@ -1717,21 +1710,23 @@ supabaseClient
                     if (welcome) {
                         welcome.remove();
                     }
-                    messagesDiv.appendChild(
-                        createMessageElement(newMessage.sender, newMessage, "private_messages")
-                    );
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                    // Evitar duplicado: si ya existe un mensaje con este data-id, no agregarlo otra vez
+                    const existing = messagesDiv.querySelector(`[data-id="${newMessage.id}"]`);
+                    if (!existing) {
+                        messagesDiv.appendChild(
+                            createMessageElement(newMessage.sender, newMessage, "private_messages")
+                        );
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                    }
                 }
             }
 
 
-            /* CHAT ABIERTO (otros casos no cubiertos arriba) */
+            /* CHAT ABIERTO - agregar mensaje al DOM si el chat está abierto */
 
             if (
                 currentChat === "private" &&
-                newMessage.user_id === selectedPrivateUserId &&
-                newMessage.sender !== currentUserName && // evitar duplicado con mensaje propio enviado
-                !( !isAdmin && newMessage.sender === "Administrador" )
+                newMessage.user_id === selectedPrivateUserId
             ) {
                 // Agregar mensaje directamente sin recargar todo
                 const messagesDiv = document.getElementById("messages");
@@ -1739,10 +1734,14 @@ supabaseClient
                 if (welcome) {
                     welcome.remove();
                 }
-                messagesDiv.appendChild(
-                    createMessageElement(newMessage.sender, newMessage, "private_messages")
-                );
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                // Evitar duplicado: si ya existe un mensaje con este data-id, no agregarlo otra vez
+                const existing = messagesDiv.querySelector(`[data-id="${newMessage.id}"]`);
+                if (!existing) {
+                    messagesDiv.appendChild(
+                        createMessageElement(newMessage.sender, newMessage, "private_messages")
+                    );
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }
             }
         }
     )
@@ -1784,6 +1783,92 @@ document
         }
     });
 
+
+
+/* VERIFICADOR DE RESPALDO - revisa nuevos mensajes cada 10 segundos
+   para que aparezcan al instante incluso si el canal en tiempo real se duerme */
+
+let lastGeneralCheck = "";
+let lastPrivateCheck = "";
+
+async function checkForNewMessages() {
+
+    if (currentChat === "general") {
+
+        const { data, error } = await supabaseClient
+            .from("messages")
+            .select("id,created_at")
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+        if (!error && data && data.length > 0) {
+            const newest = data[0];
+            if (newest.created_at !== lastGeneralCheck) {
+                lastGeneralCheck = newest.created_at;
+                const { data: msgs, error: merr } = await supabaseClient
+                    .from("messages")
+                    .select("*")
+                    .order("created_at", { ascending: true });
+
+                if (!merr && msgs && msgs.length > 0) {
+                    const lastItem = msgs[msgs.length - 1];
+                    const messagesDiv = document.getElementById("messages");
+                    const existing = messagesDiv.querySelector(`[data-id="${lastItem.id}"]`);
+                    if (!existing) {
+                        const welcome = messagesDiv.querySelector(".welcome");
+                        if (welcome) welcome.remove();
+                        messagesDiv.appendChild(createMessageElement(lastItem.name, lastItem, "messages"));
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                    }
+                }
+            }
+        }
+    }
+
+    if (currentChat === "private") {
+
+        const privateUserId =
+            currentUserName === "Administrador"
+                ? selectedPrivateUserId
+                : currentUserId;
+
+        if (!privateUserId) return;
+
+        const { data, error } = await supabaseClient
+            .from("private_messages")
+            .select("id,created_at")
+            .eq("user_id", privateUserId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+        if (!error && data && data.length > 0) {
+            const newest = data[0];
+            if (newest.created_at !== lastPrivateCheck) {
+                lastPrivateCheck = newest.created_at;
+                const { data: msgs, error: merr } = await supabaseClient
+                    .from("private_messages")
+                    .select("*")
+                    .eq("user_id", privateUserId)
+                    .order("created_at", { ascending: true });
+
+                if (!merr && msgs && msgs.length > 0) {
+                    const lastItem = msgs[msgs.length - 1];
+                    const messagesDiv = document.getElementById("messages");
+                    const existing = messagesDiv.querySelector(`[data-id="${lastItem.id}"]`);
+                    if (!existing) {
+                        const welcome = messagesDiv.querySelector(".welcome");
+                        if (welcome) welcome.remove();
+                        messagesDiv.appendChild(createMessageElement(lastItem.sender, lastItem, "private_messages"));
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Ejecutar verificación cada 10 segundos
+setInterval(checkForNewMessages, 10000);
 </script>
 
 </body>
